@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% from "macro.html" import softwareLayout %}
+{% block main %}
+  <h1>{{title}}</h1>
+  <a href=/software/add>Add software</a>
+  <p>Page {{page}}</p>
+  {% for row in res %}
+    {{ softwareLayout(row) }}
+  {% endfor %}
+{% endblock %}

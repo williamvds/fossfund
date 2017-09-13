@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block main %}
+<form action=/software/{{ 'edit' if res else 'add' }} method=post>
+    <label>Name <input type=text name=name {%- if res %} value="{{res.software_name}}"{% endif %}></label>
+    <label>Description <input type=text name=desc {%- if res and res.software_desc %} value="{{res.software_desc}}"{% endif %}></label>
+    <label>Logo <input type=file name=logo></label>
+    <label>Organisation
+      <select name="orgID">
+        <option value="0" selected>None</option>
+        {% for org in orgs %}
+        <option value="{{org.orgID}}">{{org.name}}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <input type=submit value="Submit{{ ' changes' if res else ''}}">
+    {% if res %}<input type=number name=softID value="{{res.software_softID}}" hidden>{% endif %}
+</form>
+{% endblock %}

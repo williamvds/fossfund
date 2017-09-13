@@ -1,0 +1,22 @@
+{% macro softwareLayout( rec, link=True ) %}
+<div>
+  {% if rec.software_logo %}
+    <img src="{{rec.software_logo}}" alt="Logo of {{rec.software_name}}">
+  {% endif %}
+  {% if link %}<a href="/software/{{rec.software_softID}}">{% endif %}
+    <h2>{{rec.software_name}}</h2>
+  {% if link %}</a>{% endif %}
+  {% if app.config.dev -%}
+		<span>#{{rec.software_softID}}</span>
+	{% endif %}
+  <p>{{rec.software_desc or '<em>No description</em>'}}</p>
+  {% if rec.orgs_orgID %}
+    <div class=org>
+      {% if rec.orgs_logo %}
+        <img src="{{rec.orgs_logo}}" alt="Logo of {{rec.orgs_name}}">
+      {% endif %}
+      <p>{{rec.orgs_name}}</p>
+    </div>
+  {% endif %}
+</div>
+{% endmacro %}
