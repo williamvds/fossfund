@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv=content-type content="text/html; charset=utf-8">
   <title>{{ title ~ ' //fossfund' if title else 'fossfund' }}</title>
+  <link rel="stylesheet" type="text/css" href="/static/app.css">
   <body>
-    <nav>
-      <ul>
-        {% for href, name in [('/software', 'Software'), ('/organisations', 'Organisations'),
-          ('/login', 'Login')] %}
-        <li><a {%- if request.path == href %} class=current{% endif %} href={{href}}>{{name}}</a>
-        {% endfor %}
-      </ul>
-    </nav>
-    <main>
+    <header>
+      <div class=contain>
+        <a href=/>fossfund</a>
+        <nav>
+          <ul>
+            {% for href, name in [('/software', 'Software'), ('/organisations', 'Organisations'),
+              ('/login', 'Login')] %}
+            <li><a {%- if request.path == href %} class=current{% endif %} href={{href}}>{{name}}</a>
+            {% endfor %}
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main class=contain>
       {%+ block main %}{% endblock %}
     </main>
   </body>
