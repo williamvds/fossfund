@@ -3,20 +3,6 @@ from http.client import responses
 from aiohttp.web import HTTPException
 from aiohttp_jinja2 import render_template as render
 
-async def handleHeaders(_, handle):
-    """Enables compression, uses less verbose Server header"""
-    async def middleware(req):
-        """Middleware function"""
-        try: res = await handle(req)
-        except HTTPException as ex: res = ex
-        if not res.prepared:
-            res.headers['Server'] = 'Python aiohttp'
-            res.enable_compression()
-        return res
-
-
-    return middleware
-
 async def handleError(_, handle):
     """Catch 404 and 500 errors, render error.html"""
     async def middleware(req):

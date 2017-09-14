@@ -5,9 +5,8 @@ from jinja2 import FileSystemLoader as jinjaLoader
 from aiohttp_jinja2 import setup as jinjaSetup, request_processor
 from attrdict import AttrDict
 
-import db
-from extends import handleHeaders, handleError
-from routes import route
+import db, routes
+from extends import handleError
 
 def run(conf='../config.yaml'):
     """Start server and setup"""
@@ -16,7 +15,7 @@ def run(conf='../config.yaml'):
     app = web.Application(middlewares=[handleError])
     app.config = loadConfig(conf)
     # Routes
-    route.add_to_router(app.router)
+    routes.addRoutes(app.router)
 
     # Jinja
     jinjaSetup(app, loader=jinjaLoader('templates'), context_processors=[request_processor],

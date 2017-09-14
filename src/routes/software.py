@@ -1,4 +1,4 @@
-"""Set up all routes for app"""
+"""Routes for /software"""
 from attrdict import AttrDict
 from aiohttp.web import HTTPFound as redirect
 from aiohttp_route_decorator import RouteCollector
@@ -7,20 +7,9 @@ from aiohttp_jinja2 import template
 import db
 from extends import error
 
-route = RouteCollector()
+route = RouteCollector(prefix='/software')
 
-@route('/')
-@template('index.html')
-async def index(req):
-    """Generate index - FAQ, #users, random projects?"""
-    res = await db.fetch(req.app,
-        db.software.outerjoin(db.orgs) \
-        .select(use_labels=True) \
-        .limit(3))
-
-    return {'res': res}
-
-@route('/software')
+@route('')
 @template('softwareList.html')
 async def softwareList(req):
     """List of software, paginated"""
@@ -38,7 +27,7 @@ async def softwareList(req):
 
     return {'title': 'Software', 'page': page, 'res': res}
 
-@route('/software/add')
+@route('/add')
 @template('softwareForm.html')
 async def softwareAdd(req):
     """Render software form"""
@@ -46,7 +35,7 @@ async def softwareAdd(req):
 
     return {'title': 'Add software', 'orgs': orgs}
 
-@route('/software/add', method='POST')
+@route('/add', method='POST')
 async def softwareAddPost(req):
     """Insert, validate, then redirect to new software's page"""
     vals = AttrDict(await req.post())
@@ -55,7 +44,7 @@ async def softwareAddPost(req):
 
     return redirect('/software/%s'% res.softID)
 
-@route('/software/edit/{softID}')
+@route('/edit/{softID}')
 @template('softwareForm.html')
 async def softwareEdit(req):
     """Render software form with existing info"""
@@ -78,7 +67,7 @@ async def softwareEdit(req):
 
     return {'title': 'Editing '+ res.software_name, 'res': res, 'orgs': orgs}
 
-@route('/software/edit', method='POST')
+@route('/edit', method='POST')
 async def softwareEditPost(req):
     """Update, validate, then redirect to edited software's page"""
     # TODO auth and edit moderation
@@ -91,7 +80,7 @@ async def softwareEditPost(req):
 
     return redirect('/software/%s'% vals.softID)
 
-@route('/software/remove/{softID}')
+@route('/remove/{softID}')
 async def softwareRemove(req):
     """Delete software, redirect to /software"""
     # TODO authenticate
@@ -105,7 +94,7 @@ async def softwareRemove(req):
 
     return redirect('/software')
 
-@route('/software/{softID}')
+@route('/{softID}')
 @template('software.html')
 async def software(req):
     """Individual software page - all info, organisation info, income?"""
