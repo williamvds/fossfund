@@ -13,10 +13,12 @@ route = RouteCollector()
 @template('index.html')
 async def index(req):
     """Generate index - FAQ, #users, random projects?"""
-    res = await db.fetch(req.app, db.software.select()
+    res = await db.fetch(req.app,
+        db.software.outerjoin(db.orgs) \
+        .select(use_labels=True) \
         .limit(3))
 
-    return {'title': 'Home', 'res': res}
+    return {'res': res}
 
 @route('/software')
 @template('softwareList.html')
