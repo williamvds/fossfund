@@ -1,7 +1,8 @@
 aiohttp>=2.2.5
 aiohttp-route-decorator>=0.1.4
-PyYAML>=3.12
-SQLAlchemy>=1.1.13
-attrdict>=2.0.0
-aiopg>=0.13.0
 aiohttp-jinja2>=0.13.0
+aioauth-client>=0.10.0
+aiopg>=0.13.0
+SQLAlchemy>=1.1.13
+PyYAML>=3.12
+attrdict>=2.0.0

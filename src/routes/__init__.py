@@ -6,7 +6,7 @@ from aiohttp_jinja2 import template
 
 import db
 from extends import error
-from . import software
+from . import login, software
 
 route = RouteCollector()
 
@@ -23,5 +23,6 @@ async def index(req):
 
 def addRoutes(router):
     """Add all RouteCollectors to the given router"""
+    login.route.add_to_router(router)
     software.route.add_to_router(router)
     route.add_to_router(router)
