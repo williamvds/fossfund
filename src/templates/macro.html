@@ -9,7 +9,7 @@
   {% if app.config.dev -%}
 		<span>#{{rec.software_softID}}</span>
 	{% endif %}
-  <p>{{rec.software_desc or '<em>No description</em>'}}</p>
+  <p>{{rec.software_desc or ''}}{% if not rec.software_desc %}<em>No description</em>{% endif %}</p>
   {% if rec.orgs_orgID %}
     <div class=org>
       {% if rec.orgs_logo %}
