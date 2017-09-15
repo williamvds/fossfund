@@ -15,4 +15,32 @@
     <input type=submit value="Submit{{ ' changes' if res else ''}}">
     {% if res %}<input type=number name=softID value="{{res.software_softID}}" hidden>{% endif %}
 </form>
+
+<h1>Guidelines</h2>
+<h2>Name</h2>
+<ul>
+  <li>If the name is an abbreviation, spell out the abbreviation, then provide the abbreviation
+    in parentheses<br> E.g. <em>SirCmpwn's Wayland compositor (SWAY)</em>
+  <li>Exceptions to the previous may be made for well known projects (KDE), or where providing it
+    does not make much sense (GNU)
+  <li>Write the name the way the author(s) write it
+</ul>
+<h2>Description</h2>
+<ul>
+  <li>A succinct description of the what the project provides, its goals, and perhaps philosophy
+  <li>Preferably the description provided by the author(s) - perhaps cut down
+  <li>Don't worry about repeating information provided by the tags
+</ul>
+<h2>Logo</h2>
+<ul>
+  <li>Only use official logos - ones used by the project itself
+  <li>Only use the most recent iteration of the logo
+  <li>Preferably a version with a transparent background - if it makes sense
+</ul>
+<h2>Organisation</h2>
+<ul>
+  <li>The organisation that is the main contributor to the project or funds its
+    development
+  <li>Organisations that endorse the project - e.g. GNU - are acceptable
+</ul>
 {% endblock %}
