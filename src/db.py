@@ -98,8 +98,9 @@ async def fetch(app, query, one=False):
     """Run query, return list of dicts, for each row"""
     q = await run(app, query)
     if one:
-        return AttrDict(await q.fetchone())
-    return [AttrDict(r) async for r in q]
+        one = await q.fetchone()
+        return AttrDict(one) if one else one
+    return [AttrDict(r) if r else r async for r in q]
 
 async def insert(app, table, data, res):
     """Insert dictionary of data into given table, returning field res"""
