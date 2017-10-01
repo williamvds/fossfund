@@ -1,4 +1,4 @@
-host: 127.0.0.1
+host: lvh.me
 port: 8080
 dev: true
 softwaresPerPage: 20

@@ -49,7 +49,7 @@ async def oauth(req):
 
     info = clients[provider]
     client = info['client'](**info['init'])
-    client.params['redirect_uri'] = 'http://lvh.me%s' %req.path
+    client.params['redirect_uri'] = '%s://%s%s' %(req.scheme, req.app.config.host, req.path)
 
     if client.shared_key not in req.GET:
         return redirect(client.get_authorize_url())
