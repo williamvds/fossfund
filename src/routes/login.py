@@ -40,15 +40,8 @@ async def login(_):
 @route('/{provider}')
 async def oauth(req):
     """Redirect to OAuth URL or perform OAuth login"""
-    ses = await get_session(req)
-    if 'id' in ses:
-        user = db.fetch(req.app, db.sessions.select() \
-            .where(db.sessions.c.sesID == ses.id),
-            one=True)
-
-        if user:
-            # User already logged in
-            return redirect('/')
+    if req.user:
+        return redirect('/')
 
     provider = req.match_info['provider']
     if provider not in clients:
