@@ -1,6 +1,7 @@
 aiohttp>=2.2.5
 aiohttp-route-decorator>=0.1.4
 aiohttp-jinja2>=0.13.0
+aiohttp-session>=1.0.1
 aioauth-client>=0.10.0
 aiopg>=0.13.0
 SQLAlchemy>=1.1.13

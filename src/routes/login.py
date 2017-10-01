@@ -1,10 +1,13 @@
-"""Routes for OAuth login /login"""
-from aiohttp.web import HTTPFound as redirect, Response # TODO remove Response
+"""Routes for OAuth /login"""
+from aiohttp.web import HTTPFound as redirect
 from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
-from aioauth_client import GithubClient#, Bitbucket2Client, GoogleClient
+from aiohttp_session import get_session
+from aioauth_client import GithubClient, Bitbucket2Client#, GoogleClient
 
+import db
 from extends import error
+
 route = RouteCollector(prefix='/login')
 
 clients = {
@@ -15,10 +18,13 @@ clients = {
             'client_secret': '0ecd528baefcf83f6157345cfaf0b8fcf7787c62'
         }
     },
-    # 'bitbucket': {
-    #     'client': Bitbucket2Client,
-    #     'init': {'consumer_key': '', 'consumer_secret': ''}
-    # },
+    'bitbucket': {
+        'client': Bitbucket2Client,
+        'init': {
+            'client_id': 'pEq8fSwMNAfYNMvXW5',
+            'client_secret': 'v3kcd58EWzADtECG5VJy9Mc9FbqqmnUM'
+        }
+    },
     # 'google': {
     #     'client': GoogleClient,
     #     'init': {'client_key': '', 'client_secret': ''}
@@ -33,7 +39,17 @@ async def login(_):
 
 @route('/{provider}')
 async def oauth(req):
-    """Perform OAuth login"""
+    """Redirect to OAuth URL or perform OAuth login"""
+    ses = await get_session(req)
+    if 'id' in ses:
+        user = db.fetch(req.app, db.sessions.select() \
+            .where(db.sessions.c.sesID == ses.id),
+            one=True)
+
+        if user:
+            # User already logged in
+            return redirect('/')
+
     provider = req.match_info['provider']
     if provider not in clients:
         return error(req)
@@ -47,18 +63,19 @@ async def oauth(req):
 
     await client.get_access_token(req.GET)
     user, _ = await client.user_info()
-    text = (
-        "<a href='/'>back</a><br/><br/>"
-        "<ul>"
-        "<li>ID: %(id)s</li>"
-        "<li>Username: %(username)s</li>"
-        "<li>First, last name: %(first_name)s, %(last_name)s</li>"
-        "<li>Gender: %(gender)s</li>"
-        "<li>Email: %(email)s</li>"
-        "<li>Link: %(link)s</li>"
-        "<li>Picture: %(picture)s</li>"
-        "<li>Country, city: %(country)s, %(city)s</li>"
-        "</ul>"
-    ) % user.__dict__
+    providerID = str(user.id)
 
-    return Response(text=text, content_type='text/html')
+    user = await db.fetch(req.app, db.users.select() \
+        .where((db.users.c.providerUserID == providerID) & (db.users.c.provider == provider)),
+        one=True)
+
+    if not user:
+        user = await db.insert(req.app, db.users,
+            {'provider': provider, 'providerUserID': providerID},
+            db.users.c.userID)
+
+    sesID = await db.insert(req.app, db.sessions, {'userID': user.userID}, db.sessions.c.sesID)
+    ses = await get_session(req)
+    ses['id'] = sesID.sesID
+
+    return redirect('/')

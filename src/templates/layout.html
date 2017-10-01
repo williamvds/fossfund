@@ -9,14 +9,21 @@
         <a href=/>fossfund</a>
         <nav>
           <ul>
-            {% for href, name in [('/software', 'Software'), ('/organisations', 'Organisations'),
-              ('/login', 'Login')] %}
+            {% for href, name in [('/software', 'Software'), ('/organisations', 'Organisations')] %}
             <li><a {%- if request.path == href %} class=current{% endif %} href={{href}}>{{name}}</a>
             {% endfor %}
+            <li>
+              {% if request.user %}<b>Logged in as {{request.user.users_userID}}</b>{% endif %}
+              {% if not request.user %}
+              <a {%- if request.path == '/login' %} class=current{% endif %} href=/login>Login</a>
+              {% endif %}
+            </li>
           </ul>
         </nav>
       </div>
     </header>
+    {% if msg %}<div class=msg>{{msg}}</div>{% endif %}
+    {% if err %}<div class="msg msgError">{{err}}</div>{% endif %}
     <main class=contain>
       {%+ block main %}{% endblock %}
     </main>

@@ -1,7 +1,11 @@
 """Utility classes & functions, including extensions to other libraries"""
 from http.client import responses
+
 from aiohttp.web import HTTPException
 from aiohttp_jinja2 import render_template as render
+from aiohttp_session import get_session
+
+import db
 
 async def handleError(_, handle):
     """Catch 404 and 500 errors, render error.html"""
@@ -15,6 +19,18 @@ async def handleError(_, handle):
             return error(req, res.status)
 
         return res
+
+    return middleware
+
+async def attachUser(_, handle):
+    """Attach user information to requests if request is authenticated"""
+    async def middleware(req):
+        """Middleware function"""
+        ses = await get_session(req)
+        if 'id' in ses:
+            req.user = await db.getUser(req.app, ses['id'])
+
+        return await handle(req)
 
     return middleware
 

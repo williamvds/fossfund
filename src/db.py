@@ -1,11 +1,11 @@
 """Database related, including schema, setup, attachment"""
-from attrdict import AttrDict
-from psycopg2 import IntegrityError
 from aiopg.sa import create_engine as create
 from aiopg.sa.connection import SAConnection
-from sqlalchemy import Table, Column, Integer, String, Boolean, \
-    ForeignKey, MetaData, CheckConstraint
+from psycopg2 import IntegrityError
+from sqlalchemy import Table, Column, Integer, String, Boolean, Time, Enum, text, \
+    ForeignKey, MetaData, CheckConstraint, func
 from sqlalchemy.schema import CreateTable
+from attrdict import AttrDict
 
 m = MetaData()
 
@@ -38,15 +38,31 @@ members = Table('members', m,
     Column('softID', Integer, ForeignKey('software.softID', ondelete='CASCADE'), primary_key=True),
     Column('grpID', Integer, ForeignKey('groups.grpID', ondelete='CASCADE'), primary_key=True))
 
-tables = [orgs, groups, software, members]
+# Users
+users = Table('users', m,
+    Column('userID', Integer, primary_key=True),
+    # OAuth provider
+    Column('provider', Enum('github', 'bitbucket', 'google', name='oauthprovider')),
+    Column('providerUserID', String), # User ID given by provider
+    Column('joined', Time, default=func.now()))
+
+# Sessions
+# 1:M users:sessions
+sessions = Table('sessions', m,
+    Column('sesID', String, server_default=text("uuid_generate_v4()"), primary_key=True),
+    Column('userID', ForeignKey('users.userID', ondelete='CASCADE')))
+
+tables = [orgs, groups, software, members, users, sessions]
 
 # Application related
 async def setup(config):
-    """Recreate database tables"""
+    """Recreate database schema"""
     db = await create(**config)
     async with db.acquire() as c:
+        await c.execute('DROP TYPE IF EXISTS oauthprovider CASCADE;')
+        await c.execute("CREATE TYPE oauthprovider AS ENUM ('github', 'bitbucket', 'google');")
         for tab in tables:
-            await c.execute('DROP TABLE IF EXISTS %s CASCADE' % tab.name)
+            await c.execute('DROP TABLE IF EXISTS %s CASCADE;' % tab.name)
             await c.execute(CreateTable(tab))
 
 async def attach(app):
@@ -95,3 +111,9 @@ async def insert(app, table, data, res):
         return AttrDict(await q.fetchone())
     except IntegrityError: # Row already exists
         return None # TODO? Redirect with error
+
+async def getUser(app, sesID):
+    """Get a single user from a session"""
+    return await fetch(app, users.join(sessions).select(use_labels=True) \
+        .where(sessions.c.sesID == sesID),
+        one=True)

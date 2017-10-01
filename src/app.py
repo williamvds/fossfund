@@ -1,12 +1,17 @@
 """Functions for running the application"""
-import sys, yaml
+import sys
+from base64 import urlsafe_b64decode
+
+import yaml
 from aiohttp import web
-from jinja2 import FileSystemLoader as jinjaLoader
+from aiohttp_session.cookie_storage import EncryptedCookieStorage
+from aiohttp_session import setup as sessionSetup
 from aiohttp_jinja2 import setup as jinjaSetup, request_processor
+from jinja2 import FileSystemLoader as jinjaLoader
 from attrdict import AttrDict
 
 import db, routes
-from extends import handleError
+from extends import handleError, attachUser
 
 def run(conf='../config.yaml'):
     """Start server and setup"""
@@ -14,14 +19,17 @@ def run(conf='../config.yaml'):
     global app
     app = web.Application(middlewares=[handleError])
     app.config = loadConfig(conf)
-    # Routes
+
     routes.addRoutes(app.router)
 
-    # Jinja
     jinjaSetup(app, loader=jinjaLoader('templates'), context_processors=[request_processor],
         **app.config.jinja)
 
-    # DB
+    sessionSetup(app, EncryptedCookieStorage(
+        urlsafe_b64decode(app.config.sessionSecret),
+        cookie_name='session'))
+
+    app.middlewares.append(attachUser)
     app.on_startup.append(db.attach)
     app.on_shutdown.append(db.destroy)
 
@@ -45,5 +53,6 @@ if __name__ == '__main__':
         method = locals()[sys.argv[1]]
     except (NameError, IndexError):
         method = run
+    method()
 else:
     run()
