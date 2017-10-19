@@ -40,7 +40,7 @@ async def login(_):
 @route('/{provider}')
 async def oauth(req):
     """Redirect to OAuth URL or perform OAuth login"""
-    if req.user:
+    if 'user' in req:
         return redirect('/')
 
     provider = req.match_info['provider']
