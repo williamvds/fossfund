@@ -1,7 +1,0 @@
-{% extends "layout.html" %}
-{% from "macro.html" import softwareLayout %}
-{% block main %}
-  <a href=/software/edit/{{res.software_softID}}>Edit</a>
-  <a href=/software/remove/{{res.software_softID}}>Remove</a>
-  {{ softwareLayout(res, false) }}
-{% endblock %}

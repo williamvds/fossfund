@@ -4,8 +4,8 @@
   <img src=http://via.placeholder.com/450x200 alt="Exemplar fossfund email">
   <ol>
     <li><h2>Sign up</h2>
-    <li><h2>Select some software you use</h2>
-    <img src=http://via.placeholder.com/300x175 alt="Example of choosing software">
+    <li><h2>Select some project you use</h2>
+    <img src=http://via.placeholder.com/300x175 alt="Example of choosing project">
     <li><h2>Set your spending target and frequency</h2>
     <img src=http://via.placeholder.com/300x175 alt="Example of choosing spending target and frequency">
   </ol>
@@ -13,8 +13,8 @@
   <a href=/about>About fossfund</a>
 
 	<h1>Some projects</h1>
-	{% from "macro.html" import softwareLayout %}
+	{% from "macro.html" import projectLayout %}
 	{% for s in res %}
-		{{ softwareLayout(s) }}
+		{{ projectLayout(s) }}
 	{% endfor %}
 {% endblock %}

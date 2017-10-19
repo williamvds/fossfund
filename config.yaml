@@ -1,7 +1,7 @@
 host: lvh.me
 port: 8080
 dev: true
-softwaresPerPage: 20
+projectsPerPage: 20
 sessionSecret: mrzmm3GbksRN2bAhKA25YDZDm-lze7JGuTR3j81RC80=
 db:
   host: localhost

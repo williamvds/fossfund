@@ -9,15 +9,15 @@ from attrdict import AttrDict
 
 m = MetaData()
 
-software = Table('software', m,
-    Column('softID', Integer, primary_key=True),
+projects = Table('projects', m,
+    Column('projID', Integer, primary_key=True),
     Column('orgID', Integer, ForeignKey('orgs.orgID', ondelete='SET NULL')),
     Column('name', String(40), nullable=False),
     Column('desc', String(300), CheckConstraint('char_length("desc") > 14')),
     Column('logo', Boolean, default=False))
 
-# Organisations - that back software, perhaps the author. E.g. GNU, FSF
-# 1:1 software:orgs
+# Organisations - that back projects, perhaps the author. E.g. GNU, FSF
+# 1:1 projects:orgs
 orgs = Table('orgs', m,
     Column('orgID', Integer, primary_key=True),
     Column('name', String(40), nullable=False),
@@ -32,10 +32,10 @@ groups = Table('groups', m,
     Column('desc', String(300), CheckConstraint('char_length("desc") > 14')),
     Column('logo', Boolean, default=False))
 
-# Group members - softwares that are implied from the group they belong to
-# 1:M software:members
+# Group members - projects that are implied from the group they belong to
+# 1:M projects:members
 members = Table('members', m,
-    Column('softID', Integer, ForeignKey('software.softID', ondelete='CASCADE'), primary_key=True),
+    Column('projID', Integer, ForeignKey('projects.projID', ondelete='CASCADE'), primary_key=True),
     Column('grpID', Integer, ForeignKey('groups.grpID', ondelete='CASCADE'), primary_key=True))
 
 # Users
@@ -52,7 +52,7 @@ sessions = Table('sessions', m,
     Column('sesID', String, server_default=text("uuid_generate_v4()"), primary_key=True),
     Column('userID', ForeignKey('users.userID', ondelete='CASCADE')))
 
-tables = [orgs, groups, software, members, users, sessions]
+tables = [orgs, groups, projects, members, users, sessions]
 
 # Application related
 async def setup(config):

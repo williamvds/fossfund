@@ -6,7 +6,7 @@ from aiohttp_jinja2 import template
 
 import db
 from extends import error
-from . import login, software
+from . import login, project
 
 route = RouteCollector()
 
@@ -15,7 +15,7 @@ route = RouteCollector()
 async def index(req):
     """Generate index - FAQ, #users, random projects?"""
     res = await db.fetch(req.app,
-        db.software.outerjoin(db.orgs) \
+        db.projects.outerjoin(db.orgs) \
         .select(use_labels=True) \
         .limit(3))
 
@@ -24,5 +24,5 @@ async def index(req):
 def addRoutes(router):
     """Add all RouteCollectors to the given router"""
     login.route.add_to_router(router)
-    software.route.add_to_router(router)
+    project.route.add_to_router(router)
     route.add_to_router(router)
