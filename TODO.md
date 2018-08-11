@@ -1,0 +1,2 @@
+- Move oauth providers into main config file
+- Automatically generate oauthprovider enum type
