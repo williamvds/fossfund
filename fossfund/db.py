@@ -2,8 +2,8 @@
 from aiopg.sa import create_engine as create
 from aiopg.sa.connection import SAConnection
 from psycopg2 import IntegrityError
-from sqlalchemy import Table, Column, Integer, String, Boolean, Time, Enum, text, \
-    ForeignKey, MetaData, CheckConstraint, func
+from sqlalchemy import Table, Column, Integer, String, Boolean, Time, Enum, \
+    text, ForeignKey, MetaData, CheckConstraint, func
 from sqlalchemy.schema import CreateTable
 from attrdict import AttrDict
 
@@ -35,21 +35,25 @@ groups = Table('groups', m,
 # Group members - projects that are implied from the group they belong to
 # 1:M projects:members
 members = Table('members', m,
-    Column('projID', Integer, ForeignKey('projects.projID', ondelete='CASCADE'), primary_key=True),
-    Column('grpID', Integer, ForeignKey('groups.grpID', ondelete='CASCADE'), primary_key=True))
+    Column('projID', Integer, ForeignKey('projects.projID', ondelete='CASCADE'),
+        primary_key=True),
+    Column('grpID', Integer, ForeignKey('groups.grpID', ondelete='CASCADE'),
+        primary_key=True))
 
 # Users
 users = Table('users', m,
     Column('userID', Integer, primary_key=True),
     # OAuth provider
-    Column('provider', Enum('github', 'bitbucket', 'google', name='oauthprovider')),
+    Column('provider', Enum('github', 'bitbucket', 'google',
+        name='oauthprovider')),
     Column('providerUserID', String), # User ID given by provider
     Column('joined', Time, default=func.now()))
 
 # Sessions
 # 1:M users:sessions
 sessions = Table('sessions', m,
-    Column('sesID', String, server_default=text("uuid_generate_v4()"), primary_key=True),
+    Column('sesID', String, server_default=text("uuid_generate_v4()"),
+        primary_key=True),
     Column('userID', ForeignKey('users.userID', ondelete='CASCADE')))
 
 tables = [orgs, groups, projects, members, users, sessions]
@@ -58,12 +62,13 @@ tables = [orgs, groups, projects, members, users, sessions]
 async def setup(config):
     """Recreate database schema"""
     db = await create(**config)
-    async with db.acquire() as c:
-        await c.execute('DROP TYPE IF EXISTS oauthprovider CASCADE;')
-        await c.execute("CREATE TYPE oauthprovider AS ENUM ('github', 'bitbucket', 'google');")
+    async with db.acquire() as conn:
+        await conn.execute('DROP TYPE IF EXISTS oauthprovider CASCADE;')
+        await conn.execute("CREATE TYPE oauthprovider AS ENUM " \
+            "('github', 'bitbucket', 'google');")
         for tab in tables:
-            await c.execute('DROP TABLE IF EXISTS %s CASCADE;' % tab.name)
-            await c.execute(CreateTable(tab))
+            await conn.execute('DROP TABLE IF EXISTS %s CASCADE;' % tab.name)
+            await conn.execute(CreateTable(tab))
 
 async def attach(app):
     """Create an engine and attach it to app as db"""
@@ -88,7 +93,8 @@ def clean(data, table):
     return cleanData
 
 async def run(app, query):
-    """Run a query using given connection or creating a new one, return awaited query"""
+    """Run a query using given connection or creating a new one.
+    Returns awaited query"""
     if isinstance(app, SAConnection): return await app.execute(query)
 
     async with app.db.acquire() as conn:
@@ -96,20 +102,20 @@ async def run(app, query):
 
 async def fetch(app, query, one=False):
     """Run query, return list of dicts, for each row"""
-    q = await run(app, query)
+    qry = await run(app, query)
     if one:
-        one = await q.fetchone()
+        one = await qry.fetchone()
         return AttrDict(one) if one else one
-    return [AttrDict(r) if r else r async for r in q]
+    return [AttrDict(row) if row else row async for row in qry]
 
 async def insert(app, table, data, res):
     """Insert dictionary of data into given table, returning field res"""
     data = clean(data, table)
 
     try:
-        q = await run(app, table.insert(values=data) \
+        qry = await run(app, table.insert(values=data) \
             .returning(res))
-        return AttrDict(await q.fetchone())
+        return AttrDict(await qry.fetchone())
     except IntegrityError: # Row already exists
         return None # TODO? Redirect with error
 

@@ -54,13 +54,13 @@ async def projectEdit(req):
         return error(req)
 
     try:
-        async with req.app.db.acquire() as c:
-            res = await db.fetch(c,
+        async with req.app.db.acquire() as conn:
+            res = await db.fetch(conn,
                 db.projects.outerjoin(db.orgs) \
                 .select(use_labels=True)
                 .where(db.projects.c.projID == projID),
                 one=True)
-            orgs = await db.fetch(c, db.orgs.select())
+            orgs = await db.fetch(conn, db.orgs.select())
     except TypeError:
         # project record does not exist
         return error(req)
@@ -73,7 +73,10 @@ async def projectEditPost(req):
     # TODO auth and edit moderation
     vals = AttrDict(await req.post())
     if 'orgID' in vals and int(vals.orgID) == 0: vals.orgID = None
-    res = await db.run(req.app,
+
+		# pylint complains about the `dml` parameter being unspecified
+		# pylint: disable=no-value-for-parameter
+    await db.run(req.app,
         db.projects.update() \
         .where(db.projects.c.projID == vals.projID) \
         .values(db.clean(vals, db.projects)))
@@ -88,6 +91,9 @@ async def projectRemove(req):
         projID = int(req.match_info['projID'])
     except ValueError:
         return error(req)
+
+		# pylint complains about the `dml` parameter being unspecified
+		# pylint: disable=no-value-for-parameter
     await db.run(req.app,
         db.projects.delete() \
         .where(db.projects.c.projID == projID))
@@ -95,7 +101,7 @@ async def projectRemove(req):
     return redirect('/projects')
 
 @route('/{projID}')
-@template('project/project.html')
+@template('project/view.html')
 async def project(req):
     """Individual project page - all info, organisation info, income?"""
     try:

@@ -10,11 +10,9 @@ from aioauth_client import GithubClient, Bitbucket2Client#, GoogleClient
 from .. import db
 from ..extends import error
 
-sys.path.append('..')
-
 route = RouteCollector(prefix='/user')
 
-clients = {
+CLIENTS = {
     'github': {
         'client': GithubClient,
         'init': {
@@ -48,10 +46,10 @@ async def oauth(req):
         return redirect('/')
 
     provider = req.match_info['provider']
-    if provider not in clients:
+    if provider not in CLIENTS:
         return error(req)
 
-    info = clients[provider]
+    info = CLIENTS[provider]
     client = info['client'](**info['init'])
     client.params['redirect_uri'] = '%s://%s%s' \
         %(req.scheme, req.app.config.host, req.path)
@@ -65,7 +63,8 @@ async def oauth(req):
     providerID = str(user.id)
 
     user = await db.fetch(req.app, db.users.select() \
-        .where((db.users.c.providerUserID == providerID) & (db.users.c.provider == provider)),
+        .where((db.users.c.providerUserID == providerID) \
+            & (db.users.c.provider == provider)),
         one=True)
 
     if not user:
@@ -73,7 +72,8 @@ async def oauth(req):
             {'provider': provider, 'providerUserID': providerID},
             db.users.c.userID)
 
-    sesID = await db.insert(req.app, db.sessions, {'userID': user.userID}, db.sessions.c.sesID)
+    sesID = await db.insert(req.app, db.sessions, {'userID': user.userID},
+        db.sessions.c.sesID)
     ses = await get_session(req)
     ses['id'] = sesID.sesID
 
