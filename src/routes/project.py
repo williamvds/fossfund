@@ -65,7 +65,7 @@ async def projectEdit(req):
         # project record does not exist
         return error(req)
 
-    return {'title': 'Editing '+ res.project_name, 'res': res, 'orgs': orgs}
+    return {'title': 'Editing '+ res.projects_name, 'res': res, 'orgs': orgs}
 
 @route('/edit', method='POST')
 async def projectEditPost(req):
@@ -112,4 +112,4 @@ async def project(req):
     except TypeError:
         return error(req)
 
-    return {'title': res.project_name, 'res': res}
+    return {'title': res.projects_name, 'res': res}
