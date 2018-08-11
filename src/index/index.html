@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "templates/layout.html" %}
 {% block main %}
   <h2>Get frequent reminders to donate to FOSS projects</h2>
   <img src=http://via.placeholder.com/450x200 alt="Exemplar fossfund email">
@@ -13,7 +13,7 @@
   <a href=/about>About fossfund</a>
 
 	<h1>Some projects</h1>
-	{% from "macro.html" import projectLayout %}
+	{% from "templates/macros.html" import projectLayout %}
 	{% for s in res %}
 		{{ projectLayout(s) }}
 	{% endfor %}

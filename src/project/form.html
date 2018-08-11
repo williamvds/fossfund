@@ -1,6 +1,6 @@
-{% extends "layout.html" %}
+{% extends "templates/layout.html" %}
 {% block main %}
-<form action=/project/{{ 'edit' if res else 'add' }} method=post>
+<form action=/project/{{'edit' if res else 'add'}} method=post>
     <label>Name <input type=text name=name {%- if res %} value="{{res.projects_name}}"{% endif %}></label>
     <label>Description <input type=text name=desc {%- if res and res.projects_desc %} value="{{res.projects_desc}}"{% endif %}></label>
     <label>Logo <input type=file name=logo></label>
@@ -12,7 +12,7 @@
         {% endfor %}
       </select>
     </label>
-    <input type=submit value="Submit{{ ' changes' if res else ''}}">
+    <input type=submit value="Submit{{' changes' if res else ''}}">
     {% if res %}<input type=number name=projID value="{{res.projects_projID}}" hidden>{% endif %}
 </form>
 

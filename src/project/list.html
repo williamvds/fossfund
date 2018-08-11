@@ -1,10 +1,10 @@
-{% extends "layout.html" %}
-{% from "macro.html" import projectLayout %}
+{% extends "templates/layout.html" %}
+{% from "templates/macros.html" import projectLayout %}
 {% block main %}
   <h1>{{title}}</h1>
   <a href=/project/add>Add project</a>
   <p>Page {{page}}</p>
   {% for row in res %}
-    {{ projectLayout(row) }}
+    {{projectLayout(row)}}
   {% endfor %}
 {% endblock %}

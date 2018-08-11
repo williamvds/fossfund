@@ -1,14 +1,18 @@
-"""Routes for OAuth /login"""
+"""Controllers for /user"""
+import sys
+
 from aiohttp.web import HTTPFound as redirect
 from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
 from aiohttp_session import get_session
 from aioauth_client import GithubClient, Bitbucket2Client#, GoogleClient
 
-import db
-from extends import error
+from .. import db
+from ..extends import error
 
-route = RouteCollector(prefix='/login')
+sys.path.append('..')
+
+route = RouteCollector(prefix='/user')
 
 clients = {
     'github': {
@@ -31,13 +35,13 @@ clients = {
     # },
 }
 
-@route('')
-@template('login.html')
+@route('/login')
+@template('user/login.html')
 async def login(_):
     """Options to log in with different services"""
     return {'title': 'Log in'}
 
-@route('/{provider}')
+@route('/login/{provider}')
 async def oauth(req):
     """Redirect to OAuth URL or perform OAuth login"""
     if 'user' in req:
@@ -49,8 +53,10 @@ async def oauth(req):
 
     info = clients[provider]
     client = info['client'](**info['init'])
-    client.params['redirect_uri'] = '%s://%s%s' %(req.scheme, req.app.config.host, req.path)
+    client.params['redirect_uri'] = '%s://%s%s' \
+        %(req.scheme, req.app.config.host, req.path)
 
+    print(req.query.items())
     if client.shared_key not in req.GET:
         return redirect(client.get_authorize_url())
 

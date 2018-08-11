@@ -1,7 +1,7 @@
-{% extends "layout.html" %}
-{% from "macro.html" import projectLayout %}
+{% extends "templates/layout.html" %}
+{% from "templates/macros.html" import projectLayout %}
 {% block main %}
   <a href=/project/edit/{{res.projects_projID}}>Edit</a>
   <a href=/project/remove/{{res.projects_projID}}>Remove</a>
-  {{ projectLayout(res, false) }}
+  {{projectLayout(res, false)}}
 {% endblock %}

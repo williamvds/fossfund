@@ -1,16 +1,16 @@
-"""Routes for /project"""
+"""Controllers for /project"""
 from attrdict import AttrDict
 from aiohttp.web import HTTPFound as redirect
 from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
 
-import db
-from extends import error
+from .. import db
+from ..extends import error
 
 route = RouteCollector(prefix='/project')
 
 @route('')
-@template('projectList.html')
+@template('project/list.html')
 async def projectList(req):
     """List of projects, paginated"""
     try:
@@ -28,7 +28,7 @@ async def projectList(req):
     return {'title': 'Projects', 'page': page, 'res': res}
 
 @route('/add')
-@template('projectForm.html')
+@template('project/form.html')
 async def projectAdd(req):
     """Render project form"""
     orgs = await db.fetch(req.app, db.orgs.select())
@@ -45,7 +45,7 @@ async def projectAddPost(req):
     return redirect('/project/%s'% res.projID)
 
 @route('/edit/{projID}')
-@template('projectForm.html')
+@template('project/form.html')
 async def projectEdit(req):
     """Render project form with existing info"""
     try:
@@ -95,7 +95,7 @@ async def projectRemove(req):
     return redirect('/projects')
 
 @route('/{projID}')
-@template('project.html')
+@template('project/project.html')
 async def project(req):
     """Individual project page - all info, organisation info, income?"""
     try:

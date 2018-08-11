@@ -5,7 +5,7 @@ from aiohttp.web import HTTPException
 from aiohttp_jinja2 import render_template as render
 from aiohttp_session import get_session
 
-import db
+from . import db
 
 async def handleError(_, handle):
     """Catch 404 and 500 errors, render error.html"""
@@ -36,6 +36,7 @@ async def attachUser(_, handle):
 
 def error(req, code=404):
     """Render error.html giving standard description"""
-    res = render('error.html', req, {'code': code, 'desc': responses[code]})
+    res = render('templates/error.html', req,
+        {'code': code, 'desc': responses[code]})
     res.set_status(code)
     return res

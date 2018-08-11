@@ -15,7 +15,7 @@
             <li>
               {% if request.user %}<b>Logged in as {{request.user.users_userID}}</b>{% endif %}
               {% if not request.user %}
-              <a {%- if request.path == '/login' %} class=current{% endif %} href=/login>Login</a>
+              <a {%- if request.path == '/user/login' %} class=current{% endif %} href=/user/login>Login</a>
               {% endif %}
             </li>
           </ul>
