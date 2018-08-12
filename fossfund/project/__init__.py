@@ -98,7 +98,7 @@ async def projectRemove(req):
         db.projects.delete() \
         .where(db.projects.c.projID == projID))
 
-    return redirect('/projects')
+    return redirect('/project')
 
 @route('/{projID}')
 @template('project/view.html')
