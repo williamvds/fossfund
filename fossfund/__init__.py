@@ -14,7 +14,6 @@ from . import db, routes
 from .extends import handleError, attachUser
 
 _configFile = os.path.join(os.path.dirname(__file__), '../config.yaml')
-app = None
 
 try:
     _config = AttrDict(yaml.load(open(_configFile)))
