@@ -1,37 +1,16 @@
 """Controllers for /user"""
 import sys
 
+import aioauth_client
 from aiohttp.web import HTTPFound as redirect
 from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
 from aiohttp_session import get_session
-from aioauth_client import GithubClient, Bitbucket2Client#, GoogleClient
 
 from .. import db
 from ..extends import error
 
 route = RouteCollector(prefix='/user')
-
-CLIENTS = {
-    'github': {
-        'client': GithubClient,
-        'init': {
-            'client_id': 'a8f697855b0ca120e0e8',
-            'client_secret': '0ecd528baefcf83f6157345cfaf0b8fcf7787c62'
-        }
-    },
-    'bitbucket': {
-        'client': Bitbucket2Client,
-        'init': {
-            'client_id': 'pEq8fSwMNAfYNMvXW5',
-            'client_secret': 'v3kcd58EWzADtECG5VJy9Mc9FbqqmnUM'
-        }
-    },
-    # 'google': {
-    #     'client': GoogleClient,
-    #     'init': {'client_key': '', 'client_secret': ''}
-    # },
-}
 
 @route('/login')
 @template('user/login.html')
@@ -46,21 +25,21 @@ async def oauth(req):
         return redirect('/')
 
     provider = req.match_info['provider']
-    if provider not in CLIENTS:
+    if provider not in req.app.config.oauthproviders:
         return error(req)
 
-    info = CLIENTS[provider]
-    client = info['client'](**info['init'])
+    info = req.app.config.oauthproviders[provider]
+    client = getattr(aioauth_client, info['client'])(**info['options'])
     client.params['redirect_uri'] = '%s://%s%s' \
         %(req.scheme, req.app.config.host, req.path)
 
-    print(req.query.items())
-    if client.shared_key not in req.GET:
+    if client.shared_key not in req.query:
         return redirect(client.get_authorize_url())
 
-    await client.get_access_token(req.GET)
+    await client.get_access_token(req.query)
     user, _ = await client.user_info()
     providerID = str(user.id)
+    # print(list((k, getattr(user, k)) for k in user.__slots__))
 
     user = await db.fetch(req.app, db.users.select() \
         .where((db.users.c.providerUserID == providerID) \

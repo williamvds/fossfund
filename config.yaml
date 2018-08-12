@@ -13,3 +13,19 @@ jinja:
   trim_blocks: true
   lstrip_blocks: true
   autoescape: true
+oauthproviders:
+  github:
+    client: GithubClient
+    options:
+      client_id: a8f697855b0ca120e0e8
+      client_secret: 0ecd528baefcf83f6157345cfaf0b8fcf7787c62
+  bitbucket:
+    client: Bitbucket2Client
+    options:
+      client_id: pEq8fSwMNAfYNMvXW5
+      client_secret: v3kcd58EWzADtECG5VJy9Mc9FbqqmnUM
+  google:
+    client: GoogleClient
+    options:
+      client_key:
+      client_secret:
