@@ -13,7 +13,7 @@ jinja:
   trim_blocks: true
   lstrip_blocks: true
   autoescape: true
-oauthproviders:
+oauthProviders:
   github:
     client: GithubClient
     options:
@@ -29,3 +29,10 @@ oauthproviders:
     options:
       client_key:
       client_secret:
+urlTypes:
+  patreon:
+    format: https://www.patreon.com/%s
+  paypal:
+    format: https://www.paypal.me/%s
+  bountysource:
+    format: https://www.bountysource.com/teams/%s

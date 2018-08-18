@@ -25,10 +25,10 @@ async def oauth(req):
         return redirect('/')
 
     provider = req.match_info['provider']
-    if provider not in req.app.config.oauthproviders:
+    if provider not in req.app.config.oauthProviders:
         return error(req)
 
-    info = req.app.config.oauthproviders[provider]
+    info = req.app.config.oauthProviders[provider]
     client = getattr(aioauth_client, info['client'])(**info['options'])
     client.params['redirect_uri'] = '%s://%s%s' \
         %(req.scheme, req.app.config.host, req.path)

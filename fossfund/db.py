@@ -1,32 +1,53 @@
 """Database related, including schema, setup, attachment"""
+import enum
+
 from aiopg.sa import create_engine as create
 from aiopg.sa.connection import SAConnection
 from psycopg2 import IntegrityError
 from sqlalchemy import Table, Column, Integer, String, Boolean, Time, Enum, \
     text, ForeignKey, MetaData, CheckConstraint, func
 from sqlalchemy.schema import CreateTable
+from sqlalchemy.dialects.postgresql import CreateEnumType, DropEnumType
 from attrdict import AttrDict
 
-m = MetaData()
+from .extends import Config
 
-projects = Table('projects', m,
+_m = MetaData()
+
+_config = Config()
+URLType = enum.Enum('URLType', list(_config.urlTypes.keys()))
+OAuthProvider = enum.Enum('OAuthProvider', list(_config.oauthProviders.keys()))
+
+_urlType = Enum(URLType, name='urltype', metadata=_m)
+_oauthProvider = Enum(OAuthProvider, name='oauthprovider', metadata=_m)
+
+projects = Table('projects', _m,
     Column('projID', Integer, primary_key=True),
     Column('orgID', Integer, ForeignKey('orgs.orgID', ondelete='SET NULL')),
     Column('name', String(40), nullable=False),
     Column('desc', String(300), CheckConstraint('char_length("desc") > 14')),
+    Column('homepage', String),
     Column('logo', Boolean, default=False))
 
 # Organisations - that back projects, perhaps the author. E.g. GNU, FSF
 # 1:1 projects:orgs
-orgs = Table('orgs', m,
+orgs = Table('orgs', _m,
     Column('orgID', Integer, primary_key=True),
     Column('name', String(40), nullable=False),
     Column('desc', String(300), CheckConstraint('char_length("desc") > 14')),
     Column('logo', Boolean, default=False))
 
+# URLs - links to donate to projects
+# 1:M project:url
+urls = Table('urls', _m,
+    Column('urlID', Integer, primary_key=True),
+    Column('name', String(40), nullable=False),
+    Column('url', String),
+    Column('type', _urlType))
+
 # Groups - e.g. operating systems or distros
 # 1:M groups:members
-groups = Table('groups', m,
+groups = Table('groups', _m,
     Column('grpID', Integer, primary_key=True),
     Column('name', String(40), nullable=False),
     Column('desc', String(300), CheckConstraint('char_length("desc") > 14')),
@@ -34,41 +55,42 @@ groups = Table('groups', m,
 
 # Group members - projects that are implied from the group they belong to
 # 1:M projects:members
-members = Table('members', m,
+members = Table('members', _m,
     Column('projID', Integer, ForeignKey('projects.projID', ondelete='CASCADE'),
         primary_key=True),
     Column('grpID', Integer, ForeignKey('groups.grpID', ondelete='CASCADE'),
         primary_key=True))
 
 # Users
-users = Table('users', m,
+users = Table('users', _m,
     Column('userID', Integer, primary_key=True),
     # OAuth provider
-    Column('provider', Enum('github', 'bitbucket', 'google',
-        name='oauthprovider')),
+    Column('provider', _oauthProvider),
     Column('providerUserID', String), # User ID given by provider
     Column('joined', Time, default=func.now()))
 
 # Sessions
 # 1:M users:sessions
-sessions = Table('sessions', m,
-    Column('sesID', String, server_default=text("uuid_generate_v4()"),
+sessions = Table('sessions', _m,
+    Column('sesID', String, server_default=text('uuid_generate_v4()'),
         primary_key=True),
     Column('userID', ForeignKey('users.userID', ondelete='CASCADE')))
 
 tables = [orgs, groups, projects, members, users, sessions]
+enums = [_urlType, _oauthProvider]
 
 # Application related
 async def setup(config):
     """Recreate database schema"""
     db = await create(**config)
     async with db.acquire() as conn:
-        await conn.execute('DROP TYPE IF EXISTS oauthprovider CASCADE;')
-        await conn.execute("CREATE TYPE oauthprovider AS ENUM " \
-            "('github', 'bitbucket', 'google');")
-        for tab in tables:
-            await conn.execute('DROP TABLE IF EXISTS %s CASCADE;' % tab.name)
-            await conn.execute(CreateTable(tab))
+        async with conn.begin() as trans:
+            for enm in enums:
+                await conn.execute('DROP TYPE IF EXISTS %s CASCADE;' %enm.name)
+                await conn.execute(CreateEnumType(enm))
+            for tab in tables:
+                await conn.execute('DROP TABLE IF EXISTS %s CASCADE;' %tab.name)
+                await conn.execute(CreateTable(tab))
 
 async def attach(app):
     """Create an engine and attach it to app as db"""

@@ -24,7 +24,7 @@ See [aiohttp docs](https://docs.aiohttp.org/en/stable/deployment.html#nginx-conf
 1. Install the PyPI dependencies  
 `$ pip install -r require.pip`
 2. Setup the database schema  
-`$ python fossfund setup`
+`$ python -m fossfund.__init__ setup`
 
 # Running
 1. Start PostgreSQL and nginx  

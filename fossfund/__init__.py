@@ -2,30 +2,20 @@
 import sys, os, asyncio
 from base64 import urlsafe_b64decode
 
-import yaml
 from aiohttp import web
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 from aiohttp_session import setup as sessionSetup
 from aiohttp_jinja2 import setup as jinjaSetup, request_processor
 from jinja2 import FileSystemLoader as jinjaLoader
-from attrdict import AttrDict
 
 from . import db, routes
-from .extends import handleError, attachUser
+from .extends import handleError, attachUser, Config
 
-_configFile = os.path.join(os.path.dirname(__file__), '../config.yaml')
+_config = Config()
 
-try:
-    _config = AttrDict(yaml.load(open(_configFile)))
-except IOError:
-    print('Execption: %s\nFailed to load configuration file %s' \
-        % (sys.exc_info()[0], _configFile))
-    sys.exit(1)
-
-if sys.argv[1] == 'setup':
+if len(sys.argv) > 1 and sys.argv[1] == 'setup':
     asyncio.get_event_loop().run_until_complete(
         db.setup(_config.db))
-    sys.exit(0)
 
 app = web.Application(middlewares=[handleError])
 app.config = _config

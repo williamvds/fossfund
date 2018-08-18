@@ -1,9 +1,11 @@
 """Utility classes & functions, including extensions to other libraries"""
+import yaml, os, sys
 from http.client import responses
 
 from aiohttp.web import HTTPException
 from aiohttp_jinja2 import render_template as render
 from aiohttp_session import get_session
+from attrdict import AttrDict
 
 from . import db
 
@@ -40,3 +42,29 @@ def error(req, code=404):
         {'code': code, 'desc': responses[code]})
     res.set_status(code)
     return res
+
+class Singleton(object):
+    """A singleton metaclass, using agf's solution from
+    https://stackoverflow.com/a/6798042"""
+    _instances = {}
+
+    def __new__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__new__(cls, *args, **kwargs)
+        return cls._instances[cls]
+
+class Config(Singleton):
+    _dict = None
+
+    def __init__(self):
+        fname = os.path.join(os.path.dirname(__file__), '../config.yaml')
+
+        try:
+            self._dict = AttrDict(yaml.load(open(fname)))
+        except IOError:
+            print('Execption: %s\nFailed to load configuration file %s' \
+                % (sys.exc_info()[0], fname))
+            sys.exit(1)
+
+    def __getattr__(self, name):
+        return getattr(self._dict, name)
