@@ -1,1 +1,6 @@
-- Automatically generate oauthprovider enum type
+- Restrict POST data size
+	- Use `Content-Length` header
+	- In middleware?
+- Use SQLAlchemy class representation for database
+- Implement data manipulation API in database classes
+	- Keep only frontend stuff in controllers

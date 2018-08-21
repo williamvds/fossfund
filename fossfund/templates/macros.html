@@ -1,7 +1,7 @@
 {% macro projectLayout(rec, link=True) %}
-<div>
+<div class=project>
   {% if rec.projects_logo %}
-    <img src="{{rec.projects_logo}}" alt="Logo of {{rec.projects_name}}">
+    <img src="/static/project/{{rec.projects_projID}}" alt="Logo of {{rec.projects_name}}">
   {% endif %}
   {% if link %}<a href="/project/{{rec.projects_projID}}">{% endif %}
     <h2>{{rec.projects_name}}</h2>
@@ -13,7 +13,7 @@
   {% if rec.orgs_orgID %}
     <div class=org>
       {% if rec.orgs_logo %}
-        <img src="{{rec.orgs_logo}}" alt="Logo of {{rec.orgs_name}}">
+        <img src="/static/org/{{rec.orgs_orgID}}" alt="Logo of {{rec.orgs_name}}">
       {% endif %}
       <p>{{rec.orgs_name}}</p>
     </div>

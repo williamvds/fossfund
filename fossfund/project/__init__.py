@@ -1,4 +1,8 @@
 """Controllers for /project"""
+import os.path as path
+from os import makedirs
+from urllib.parse import urlencode
+
 from attrdict import AttrDict
 from aiohttp.web import HTTPFound as redirect
 from aiohttp_route_decorator import RouteCollector
@@ -8,6 +12,21 @@ from .. import db
 from ..extends import error
 
 route = RouteCollector(prefix='/project')
+
+_STATIC_DIR = path.join(path.abspath(path.dirname(__file__)),
+    '../static/project/')
+
+if not path.exists(_STATIC_DIR):
+    makedirs(_STATIC_DIR)
+
+async def updateLogo(projID, data):
+    """Create/update the logo, storing it in /static"""
+
+    if not data.content_type.startswith('image/'):
+        raise TypeError('Invalid image')
+
+    with open(_STATIC_DIR+projID, 'wb') as logoFile:
+        logoFile.write(data.file.read())
 
 @route('')
 @template('project/list.html')
@@ -74,8 +93,15 @@ async def projectEditPost(req):
     vals = AttrDict(await req.post())
     if 'orgID' in vals and int(vals.orgID) == 0: vals.orgID = None
 
-		# pylint complains about the `dml` parameter being unspecified
-		# pylint: disable=no-value-for-parameter
+    if vals.logo:
+        try:
+            await updateLogo(vals.projID, vals.logo)
+            vals.logo = True
+        except Exception as exc:
+            error(req)
+
+    # pylint complains about the `dml` parameter being unspecified
+    # pylint: disable=no-value-for-parameter
     await db.run(req.app,
         db.projects.update() \
         .where(db.projects.c.projID == vals.projID) \
@@ -92,8 +118,8 @@ async def projectRemove(req):
     except ValueError:
         return error(req)
 
-		# pylint complains about the `dml` parameter being unspecified
-		# pylint: disable=no-value-for-parameter
+    # pylint complains about the `dml` parameter being unspecified
+    # pylint: disable=no-value-for-parameter
     await db.run(req.app,
         db.projects.delete() \
         .where(db.projects.c.projID == projID))
