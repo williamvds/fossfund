@@ -28,11 +28,6 @@ class DropTable(DropQueryWithDependents):
     [1]: https://www.postgresql.org/docs/devel/static/sql-droptable.html
     '''
     subject = 'TABLE' # type: str
-    def __init__(self,
-            target: Union[str, List[str]],
-            check: bool = False,
-            cascade: bool = False):
-        super().__init__(target, check, cascade)
 
 class DropType(DropQueryWithDependents):
     '''A PostgreSQL DROP TYPE query[1]
@@ -40,11 +35,6 @@ class DropType(DropQueryWithDependents):
     [1]: https://www.postgresql.org/docs/devel/static/sql-droptype.html
     '''
     subject = 'TYPE' # type: str
-    def __init__(self,
-            target: Union[str, List[str]],
-            check: bool = False,
-            cascade: bool = False):
-        super().__init__(target, check, cascade)
 
 @compiles(DropQueryWithDependents, 'postgresql')
 def visit_drop_table(element: DropQueryWithDependents, compiler, **kwargs):
