@@ -59,7 +59,18 @@ async def projectAddPost(req):
     """Insert, validate, then redirect to new project's page"""
     vals = AttrDict(await req.post())
     if 'orgID' in vals and int(vals.orgID) == 0: vals.orgID = None
-    res = await db.insert(req.app, db.projects, vals, db.projects.c.projID)
+
+    if vals.logo:
+        try:
+            await updateLogo(vals.projID, vals.logo)
+            vals.logo = True
+        except Exception as exc:
+            error(req)
+    else:
+        vals.logo = False
+
+    res = await database.insert(req.app, database.projects, vals,
+        database.projects.c.projID)
 
     return redirect('/project/%s'% res.projID)
 
@@ -99,6 +110,8 @@ async def projectEditPost(req):
             vals.logo = True
         except Exception as exc:
             error(req)
+    else:
+        del vals.logo
 
     # pylint complains about the `dml` parameter being unspecified
     # pylint: disable=no-value-for-parameter
