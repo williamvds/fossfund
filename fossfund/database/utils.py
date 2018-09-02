@@ -47,8 +47,9 @@ class DropType(DropQueryWithDependents):
         super().__init__(target, check, cascade)
 
 @compiles(DropQueryWithDependents, 'postgresql')
-def visit_drop_table(element: DropTable, compiler, **kwargs):
-    '''Compile a PostgreSQL DROP TABLE query from a :class:`DropTable`'''
+def visit_drop_table(element: DropQueryWithDependents, compiler, **kwargs):
+    '''Compile a PostgreSQL DROP query from a :class:`DropQueryWithDependents`
+    '''
     print('DROP %s %s%s%s;' % (element.subject, element.check,
         element.target, element.cascade))
     return 'DROP %s %s%s%s;' % (element.subject, element.check,
