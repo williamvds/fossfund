@@ -2,7 +2,7 @@
 from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
 
-from .. import db
+from .. import database
 
 route = RouteCollector()
 
@@ -10,8 +10,8 @@ route = RouteCollector()
 @template('index/index.html')
 async def index(req):
     """Generate index - FAQ, #users, random projects?"""
-    res = await db.fetch(req.app,
-        db.projects.outerjoin(db.orgs) \
+    res = await database.fetch(req.app,
+        database.projects.outerjoin(database.organisations) \
         .select(use_labels=True) \
         .limit(3))
 

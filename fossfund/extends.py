@@ -7,7 +7,7 @@ from aiohttp_jinja2 import render_template as render
 from aiohttp_session import get_session
 from attrdict import AttrDict
 
-from . import db
+from . import database
 
 async def handleError(_, handle):
     """Catch 404 and 500 errors, render error.html"""
@@ -30,7 +30,7 @@ async def attachUser(_, handle):
         """Middleware function"""
         ses = await get_session(req)
         if 'id' in ses:
-            req.user = await db.getUser(req.app, ses['id'])
+            req.user = await database.getUser(req.app, ses['id'])
 
         return await handle(req)
 

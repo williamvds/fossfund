@@ -7,7 +7,7 @@ from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
 from aiohttp_session import get_session
 
-from .. import db
+from .. import database
 from ..extends import error
 
 route = RouteCollector(prefix='/user')
@@ -39,20 +39,19 @@ async def oauth(req):
     await client.get_access_token(req.query)
     user, _ = await client.user_info()
     providerID = str(user.id)
-    # print(list((k, getattr(user, k)) for k in user.__slots__))
 
-    user = await db.fetch(req.app, db.users.select() \
-        .where((db.users.c.providerUserID == providerID) \
-            & (db.users.c.provider == provider)),
+    user = await database.fetch(req.app, database.users.select() \
+        .where((database.users.c.providerUserID == providerID) \
+            & (database.users.c.provider == provider)),
         one=True)
 
     if not user:
-        user = await db.insert(req.app, db.users,
+        user = await database.insert(req.app, database.users,
             {'provider': provider, 'providerUserID': providerID},
-            db.users.c.userID)
+            database.users.c.userID)
 
-    sesID = await db.insert(req.app, db.sessions, {'userID': user.userID},
-        db.sessions.c.sesID)
+    sesID = await database.insert(req.app, database.sessions,
+        {'userID': user.userID}, database.sessions.c.sesID)
     ses = await get_session(req)
     ses['id'] = sesID.sesID
 

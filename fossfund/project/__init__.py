@@ -8,7 +8,7 @@ from aiohttp.web import HTTPFound as redirect
 from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
 
-from .. import db
+from .. import database
 from ..extends import error
 
 route = RouteCollector(prefix='/project')
@@ -38,8 +38,8 @@ async def projectList(req):
         page = 1
 
     perPage = req.app.config.projectsPerPage
-    res = await db.fetch(req.app,
-        db.projects.outerjoin(db.orgs) \
+    res = await database.fetch(req.app,
+        database.projects.outerjoin(database.organisations) \
         .select(use_labels=True) \
         .limit(perPage) \
         .offset((page -1) *perPage))
@@ -50,7 +50,7 @@ async def projectList(req):
 @template('project/form.html')
 async def projectAdd(req):
     """Render project form"""
-    orgs = await db.fetch(req.app, db.orgs.select())
+    orgs = await database.fetch(req.app, database.organisations.select())
 
     return {'title': 'Add a project', 'orgs': orgs}
 
@@ -85,12 +85,12 @@ async def projectEdit(req):
 
     try:
         async with req.app.db.acquire() as conn:
-            res = await db.fetch(conn,
-                db.projects.outerjoin(db.orgs) \
+            res = await database.fetch(conn,
+                database.projects.outerjoin(database.organisations) \
                 .select(use_labels=True)
-                .where(db.projects.c.projID == projID),
+                .where(database.projects.c.projID == projID),
                 one=True)
-            orgs = await db.fetch(conn, db.orgs.select())
+            orgs = await database.fetch(conn, database.organisations.select())
     except TypeError:
         # project record does not exist
         return error(req)
@@ -115,10 +115,10 @@ async def projectEditPost(req):
 
     # pylint complains about the `dml` parameter being unspecified
     # pylint: disable=no-value-for-parameter
-    await db.run(req.app,
-        db.projects.update() \
-        .where(db.projects.c.projID == vals.projID) \
-        .values(db.clean(vals, db.projects)))
+    await database.run(req.app,
+        database.projects.update() \
+        .where(database.projects.c.projID == vals.projID) \
+        .values(database.clean(vals, database.projects)))
 
     return redirect('/project/%s'% vals.projID)
 
@@ -133,9 +133,9 @@ async def projectRemove(req):
 
     # pylint complains about the `dml` parameter being unspecified
     # pylint: disable=no-value-for-parameter
-    await db.run(req.app,
-        db.projects.delete() \
-        .where(db.projects.c.projID == projID))
+    await database.run(req.app,
+        database.projects.delete() \
+        .where(database.projects.c.projID == projID))
 
     return redirect('/project')
 
@@ -149,10 +149,10 @@ async def project(req):
         return error(req)
 
     try:
-        res = await db.fetch(req.app,
-            db.projects.outerjoin(db.orgs) \
+        res = await database.fetch(req.app,
+            database.projects.outerjoin(database.organisations) \
             .select(use_labels=True)
-            .where(db.projects.c.projID == projID),
+            .where(database.projects.c.projID == projID),
             one=True)
     except TypeError:
         return error(req)
