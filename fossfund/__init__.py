@@ -1,4 +1,4 @@
-"""Functions for running the application"""
+'''Functions for running the application'''
 import sys, os, asyncio
 from base64 import urlsafe_b64decode
 
@@ -19,13 +19,20 @@ async def databaseSetup():
     await database.setup(await db.acquire())
     await database.destroy(db)
 
+async def attachDatabase(target: web.Application):
+    '''Attach a database engine to the given application
+
+    :param target: application to attach database to
+    '''
+    target.db = await database.create(_config.db)
+
 if len(sys.argv) > 1 and sys.argv[1] == 'setup':
     asyncio.get_event_loop().run_until_complete(databaseSetup())
 
-app = web.Application(middlewares=[handleError])
+# TODO extend web.Application
+app = web.Application()
 app.config = _config
-
-routes.addRoutes(app.router)
+app.middlewares.append(handleError)
 
 jinjaSetup(app, loader=jinjaLoader(os.path.dirname(__file__)),
     context_processors=[request_processor],
@@ -35,13 +42,7 @@ sessionSetup(app, EncryptedCookieStorage(
     urlsafe_b64decode(app.config.sessionSecret),
     cookie_name='session'))
 
-async def attachDatabase(target: web.Application):
-    '''Attach a database engine to the given application
-
-    :param target: application to attach database to
-    '''
-    target.db = await database.create(_config.db)
-
 app.middlewares.append(attachUser)
 app.on_startup.append(attachDatabase)
 app.on_shutdown.append(lambda app: database.destroy(app.db))
+routes.addRoutes(app.router)

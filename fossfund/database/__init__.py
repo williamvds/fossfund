@@ -1,6 +1,8 @@
 """Database related, including schema, setup, attachment"""
 import enum
+from typing import Union, Any, List
 
+from aiohttp.web import Application
 from aiopg.sa import create_engine, Engine
 from aiopg.sa.connection import SAConnection
 from psycopg2 import IntegrityError
@@ -30,10 +32,18 @@ async def destroy(engine: Engine):
 
 # Action utilities
 def clean(data: dict, table: Table) -> dict:
-    """Clean dictionary data for table
+    '''Clean dictionary data for table
     Invalid keys are removed - if not in the table or a PK
     Values with empty strings are replaced with None
-    Strings are .strip()ed"""
+    Strings are :func:`str.strip`ped
+
+    :param data: The dictionary of field:value to clean
+    :param table: The table for which to clean the data
+
+    todo::
+        Remove entirely. Handle the exceptions raised from psycopg2 or
+        SQLAlchemy to inform the user and log when data in queries is invalid
+    '''
     cleanData = {}
     for k, val in data.items():
         if k in table.c and not table.c[k].primary_key:
@@ -41,24 +51,47 @@ def clean(data: dict, table: Table) -> dict:
                 val.strip() if isinstance(val, str) else val
     return cleanData
 
-async def run(app, query):
-    """Run a query using given connection or creating a new one.
-    Returns awaited query"""
+async def run(app: Union[Application, SAConnection], query: Any) -> dict:
+    '''Run a query using given connection or creating a new one
+
+    :param app: database engine provider or existing connection
+    :param query: query to perform, must be convertible to :class:`str`
+    :returns: awaited query
+    '''
     if isinstance(app, SAConnection): return await app.execute(query)
 
     async with app.db.acquire() as conn:
         return await conn.execute(query)
 
-async def fetch(app, query, one=False):
-    """Run query, return list of dicts, for each row"""
+async def fetch(app: Application, query: Any, one: bool = False) \
+        -> Union[None, AttrDict, List[AttrDict]]:
+    '''Run query which expects results
+    Results are converted into (list of) :class:`AttrDict`
+
+    :param app: database engine provider
+    :param query: query to perform, must be convertible to :class:`str`
+    :param one: whether a single row is expected, in which case the result is
+        not a list
+
+    :returns: query results
+    '''
     qry = await run(app, query)
     if one:
         one = await qry.fetchone()
         return AttrDict(one) if one else one
     return [AttrDict(row) if row else row async for row in qry]
 
-async def insert(app, table, data, res):
-    """Insert dictionary of data into given table, returning field res"""
+async def insert(app: Application, table: Table, data: dict, res: Column) \
+        -> Any:
+    '''Insert data into the database
+
+    :param app: database engine provider
+    :param table: table to insert into
+    :param data: values to insert
+    :param res: field of newly created record to return
+
+    :returns: the value of the selected field in the new record
+    '''
     data = clean(data, table)
 
     try:
@@ -68,10 +101,16 @@ async def insert(app, table, data, res):
     except IntegrityError: # Row already exists
         return None # TODO? Redirect with error
 
-async def getUser(app, sesID):
-    """Get a single user from a session"""
+async def getUser(app: Application, sessionID: int) -> Union[None, AttrDict]:
+    '''Get a user record
+
+    :param app: database engine provider
+    :param sessionID: session ID (primary key) to search for
+
+    :returns: user record (or None)
+    '''
     return await fetch(app, users.join(sessions).select(use_labels=True) \
-        .where(sessions.c.sesID == sesID),
+        .where(sessions.c.sesID == sessionID),
         one=True)
 
 __all__ = [

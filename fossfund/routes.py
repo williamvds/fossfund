@@ -1,13 +1,14 @@
-"""Set up all routes for app"""
-from aiohttp_route_decorator import RouteCollector
+'''Handles routing for the application'''
+from aiohttp.web import UrlDispatcher
 
 from . import index, user, project
 
-route = RouteCollector()
+def addRoutes(router: UrlDispatcher):
+    '''Add the :class:`UrlDispatcher` routers of the website submodules to given
+    router
 
-def addRoutes(router):
-    """Add all RouteCollectors to the given router"""
+    :param router: The router to add all routes to
+    '''
     user.route.add_to_router(router)
     project.route.add_to_router(router)
     index.route.add_to_router(router)
-    route.add_to_router(router)

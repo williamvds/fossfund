@@ -1,8 +1,8 @@
-"""Controllers for /user"""
+'''Controllers for /user'''
 import sys
 
 import aioauth_client
-from aiohttp.web import HTTPFound as redirect
+from aiohttp.web import Request, HTTPFound as redirect
 from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
 from aiohttp_session import get_session
@@ -14,13 +14,23 @@ route = RouteCollector(prefix='/user')
 
 @route('/login')
 @template('user/login.html')
-async def login(_):
-    """Options to log in with different services"""
+async def login(req: Request):
+    '''/user/login
+
+    :contents: list of OAuth providers to log in with, linking to the respective
+        /user/login/(provider) URL
+
+    todo:: OAuth provider logos
+    '''
     return {'title': 'Log in'}
 
 @route('/login/{provider}')
 async def oauth(req):
-    """Redirect to OAuth URL or perform OAuth login"""
+    '''/login/(provider)
+    Perform authentication with given `provider`
+
+    :redirect: external OAuth URL if unauthenticated, else /
+    '''
     if 'user' in req:
         return redirect('/')
 
