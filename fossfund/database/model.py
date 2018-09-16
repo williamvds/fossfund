@@ -2,6 +2,7 @@
 for interacting with database'''
 import asyncio
 from typing import Any, Awaitable, Dict, List, Set, Union
+from pprint import pformat
 
 import sqlalchemy
 from aiopg.sa import Engine, SAConnection
@@ -274,6 +275,15 @@ class Record:
                     continue
                 val = data[name]
                 setattr(self, name, typ.python_type(val) if val else val)
+
+    def __repr__(self):
+        return \
+            f"{self.__class__.__name__} (" \
+            f"{'' if self.committed else 'un'}committed" \
+            f"{', dirty' if self.dirty else ''}" \
+            "):\n\t" \
+            + "\n\t".join(f"{key}: {pformat(val)}"
+                for key, val in self._data.items())
 
 class Project(Record):
     '''A free and open source project that is listed on the website
