@@ -85,7 +85,7 @@ class Record:
         :returns: query results
         '''
         if not Record._engine:
-            Record._engine = await create(**config.db)
+            Record._engine = await create(config.db)
 
         if conn:
             return await conn.execute(query)
