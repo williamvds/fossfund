@@ -123,21 +123,33 @@ class Record:
 
         return res[0]
 
-    @property
-    def _dict(self, dirty: bool = True) -> dict:
+    def _getData(self, onlyDirty: bool = False) -> dict:
         '''
-        :param dirty: whether only modified fields should be in the dictionary
-        :returns: data contained in the record
+        :param dirty: whether only modified fields should be returned
+        :returns: data contained by this record
         '''
-        #: TODO: casting? Probably performed internally by SQLAlchemy
         data = {}
-        cols = self._dirtyFields if dirty \
+        cols = self._dirtyFields if onlyDirty \
             else [col.name for col in self._table.columns]
 
         for col in cols:
             data[col] = getattr(self, col, None)
 
         return data
+
+    @property
+    def _data(self) -> dict:
+        '''
+        :returns: data contained in this record
+        '''
+        return self._getData()
+
+    @property
+    def _dirty(self) -> dict:
+        '''
+        :returns: modified data contained in this record
+        '''
+        return self._getData(True)
 
     async def save(self) -> Awaitable:
         '''Save the record represented by this object in the database.
@@ -159,7 +171,7 @@ class Record:
         self._future = asyncio.Future()
         asyncio.ensure_future(
             self._runQuery(
-                self._table.insert(values=self._dict) \
+                self._table.insert(values=self._data) \
                 .returning(self._primaryKey)))
         self._future.add_done_callback(self._saveCallback)
 
@@ -192,7 +204,7 @@ class Record:
         self._future = asyncio.Future()
         asyncio.ensure_future(
             self._runQuery(
-                self._table.update(values=self._dict(True)) \
+                self._table.update(values=self._dirty) \
                 .where(self._table.c[self._primaryKey] \
                     == getattr(self, self._primaryKey))))
         self._future.add_done_callback(self._updateCallback)
