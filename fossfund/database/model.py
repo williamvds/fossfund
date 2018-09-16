@@ -104,7 +104,7 @@ class Record:
         # TODO: work out how to handle join queries - dicts?
         res = await cls._runQuery(query)
 
-        return [cls(row) if row else row async for row in res]
+        return [cls(row, True) if row else row async for row in res]
 
     @classmethod
     async def _findOne(cls: 'Record', query: Query, strict: bool = False) \
