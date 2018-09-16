@@ -56,14 +56,14 @@ class Record:
     '''A representation of a database record
     Uses the given table to dynamically set properties which correspond to the
     fields that are contained by the record.
-    :type:`None` is used to indicate a field has not been queried.
+    :type:`NoneType` is used to indicate a field has not been queried.
     :data:`NULL` is used to represent a field's value is NULL.
 
     When :meth:`save`ing creates a new record in the database
     (i.e. :attr:`committed` is ``False``)
     does not exist in the database)
-    When a record is :meth:`save`ed, any field properties that are None are
-    set to :data:`NULL`
+    When a record is :meth:`save`ed, any field properties that are
+    :type:`NoneType` are set to :data:`NULL`
 
     '''
     #: Database :class:`~aiopg.sa.Engine` used for queries
@@ -220,7 +220,8 @@ class Record:
 
     async def delete(self) -> Awaitable:
         '''Delete the record represented by this object from the database.
-        After successful deletion, all fields of this record are set to None
+        After successful deletion, all fields of this record are set to
+        :type:`NoneType`
         '''
         if not self.committed:
             raise InvalidStateError
@@ -247,7 +248,7 @@ class Record:
 
         :param data: map field names onto the respective values the record
             should use for them.
-            Missing fields are left as :type:`None` and will not be sent in
+            Missing fields are left as :type:`NoneType` and will not be sent in
             queries.
             Fields that do not exist in the table are not used.
         :param committed: whether this record already exists in the database

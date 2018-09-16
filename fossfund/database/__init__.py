@@ -34,7 +34,7 @@ async def destroy(engine: Engine):
 def clean(data: dict, table: Table) -> dict:
     '''Clean dictionary data for table
     Invalid keys are removed - if not in the table or a PK
-    Values with empty strings are replaced with None
+    Values with empty strings are replaced with :type:`NoneType`
     Strings are :func:`str.strip`ped
 
     :param data: The dictionary of field:value to clean
