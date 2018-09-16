@@ -137,6 +137,8 @@ class Record:
         for col in cols:
             data[col] = getattr(self, col, None)
 
+        return data
+
     async def save(self) -> Awaitable:
         '''Save the record represented by this object in the database.
         Existing records are updated, if one already exists it is updated.
