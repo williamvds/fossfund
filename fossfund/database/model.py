@@ -301,6 +301,9 @@ class Project(Record):
 
 __all__ = [
     'InvalidRecordError',
-     'NULL',
-     'Project'
+    'InvalidStateError',
+    'NotUniqueError',
+    'OperationPendingError',
+    'NULL',
+    'Project'
 ]
