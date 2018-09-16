@@ -256,10 +256,11 @@ class Record:
         self.dirty = False
 
         if data:
-            for col in self._table.columns:
-                if not col.name in data:
+            for (name, typ) in [(c.name, c.type) for c in self._table.columns]:
+                if name not in data:
                     continue
-                setattr(self, col.name, col.type.python_type(data[col.name]))
+                val = data[name]
+                setattr(self, name, typ.python_type(val) if val else val)
 
 class Project(Record):
     '''A free and open source project that is listed on the website
