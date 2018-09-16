@@ -1,7 +1,7 @@
 '''Contains the classes used that provide the data model and interface classes
 for interacting with database'''
 import asyncio
-from typing import Any, Coroutine, Dict, List, Set, Union
+from typing import Any, Awaitable, Dict, List, Set, Union
 
 import sqlalchemy
 from aiopg.sa import Engine, SAConnection
@@ -77,7 +77,7 @@ class Record:
 
     @staticmethod
     async def _runQuery(query: Query, conn: SAConnection = None) \
-        -> Coroutine[dict]:
+        -> Awaitable[Dict[str, Any]]:
         '''Execute a query
 
         :param query: query to execute
@@ -95,7 +95,7 @@ class Record:
 
     @classmethod
     async def _find(cls: 'Record', query: Query) \
-        -> Coroutine[Union[List['Record'], None]]:
+        -> Awaitable[Union[List['Record'], None]]:
         '''Find and return an existing record by primary key
 
         :param query: query to execute
@@ -108,7 +108,7 @@ class Record:
 
     @classmethod
     async def _findOne(cls: 'Record', query: Query, strict: bool = False) \
-        -> Coroutine[Union['Record', None]]:
+        -> Awaitable[Union['Record', None]]:
         '''Find and return a single existing record
 
         :param query: query to execute
@@ -137,7 +137,7 @@ class Record:
         for col in cols:
             data[col] = getattr(self, col, None)
 
-    async def save(self) -> Coroutine:
+    async def save(self) -> Awaitable:
         '''Save the record represented by this object in the database.
         Existing records are updated, if one already exists it is updated.
         Upon success, :attr:`committed` is set to True, and any fields that are
@@ -172,7 +172,7 @@ class Record:
         self.committed = True
         self._future = None
 
-    async def update(self) -> Coroutine:
+    async def update(self) -> Awaitable:
         '''Update the record represented by this object in the database.
         Fails if the record is not already in the database'''
         if self._primaryKey is None:
@@ -204,7 +204,7 @@ class Record:
         self.dirty = False
         self._future = None
 
-    async def delete(self):
+    async def delete(self) -> Awaitable:
         '''Delete the record represented by this object from the database.
         After successful deletion, all fields of this record are set to None
         '''
@@ -228,7 +228,7 @@ class Record:
             setattr(self, col.name, None)
         self._future = None
 
-    def __init__(self, data: Dict[Any] = None, committed: bool = False):
+    def __init__(self, data: Dict[str, Any] = None, committed: bool = False):
         '''Create a record object
 
         :param data: map field names onto the respective values the record
