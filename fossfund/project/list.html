@@ -4,7 +4,11 @@
   <h1>{{title}}</h1>
   <a href=/project/add>Add project</a>
   <p>Page {{page}}</p>
-  {% for row in res %}
-    {{projectLayout(row)}}
-  {% endfor %}
+  {% if res %}
+    {% for row in res %}
+      {{projectLayout(row)}}
+    {% endfor %}
+  {% else %}
+    <em>No projects found</em>
+  {% endif %}
 {% endblock %}

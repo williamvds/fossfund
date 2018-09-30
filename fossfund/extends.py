@@ -1,5 +1,6 @@
 '''Utility classes & functions, including extensions to other libraries'''
-import os, sys
+import sys
+from os import path, makedirs
 from http.client import responses
 from typing import NewType, Callable
 
@@ -12,6 +13,35 @@ from attrdict import AttrDict
 from . import database
 
 RequestHandler = NewType('RequestHandler', Callable[[Request], None])
+
+class AppException(Exception):
+    '''An exception raised when an error occurs during a request's
+    processing
+
+    :param desc: description of what went wrong, possibly presented to the user
+    :param fatal: whether this exception should end all processing and
+        present itself to the user
+    '''
+    def __init__(self, desc: str, fatal: bool = False):
+        super().__init__(desc)
+
+class AppError(AppException):
+    '''An exception raised when an non-fatal issue occurs during a request's
+    processing
+    :param desc: description of what went wrong, possibly presented to the user
+    '''
+    pass
+
+class AppFatalError(AppException):
+    '''An exception raised when a fatal error occurs at some point of a
+    request's processing
+    The error is presented to the user
+
+    :param desc: description of what went wrong, to present to the user
+    '''
+    def __init__(self, desc: str):
+        super().__init__(desc, True)
+
 
 @middleware
 async def handleError(req: str, handler: RequestHandler):
@@ -56,7 +86,7 @@ def error(req: Request, code: int = 404):
     res.set_status(code)
     return res
 
-class Singleton():
+class Singleton(type):
     '''A singleton metaclass
 
     :author: Adam Forsyth
@@ -64,12 +94,12 @@ class Singleton():
     '''
     _instances = {}
 
-    def __new__(cls, *args, **kwargs):
+    def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super().__new__(cls, *args, **kwargs)
+            cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
-class Config(Singleton):
+class Config(metaclass=Singleton):
     '''A singleton config class from which all configuration values can be
     accessed as attributes
     '''
@@ -77,14 +107,24 @@ class Config(Singleton):
     _dict: AttrDict = None
 
     def __init__(self):
-        fname = os.path.join(os.path.dirname(__file__), '../config.yaml')
+        fname = path.join(path.dirname(__file__), '../config.yaml')
 
         try:
-            self._dict = AttrDict(yaml.load(open(fname)))
-        except IOError:
-            print('Execption: %s\nFailed to load configuration file %s' \
-                % (sys.exc_info()[0], fname))
-            sys.exit(1)
+            config = AttrDict(yaml.load(open(fname)))
+        except IOError as ex:
+            raise Exception(f"Failed to load configuration file {fname}: {ex}")
+
+        config.staticDir = path.join(path.dirname(__file__), 'static')
+
+        if not path.exists(config.staticDir):
+            makedirs(config.staticDir, 0o755)
+
+        config.projectLogoDir = path.join(config.staticDir, 'project')
+
+        if not path.exists(config.projectLogoDir):
+            makedirs(config.projectLogoDir, 0o755)
+
+        self._dict = config
 
     def __getattr__(self, name):
         return getattr(self._dict, name)

@@ -49,7 +49,5 @@ class DropType(DropQueryWithDependents):
 def visit_drop_table(element: DropQueryWithDependents, compiler, **kwargs):
     '''Compile a PostgreSQL DROP query from a :class:`DropQueryWithDependents`
     '''
-    print('DROP %s %s%s%s;' % (element.subject, element.check,
-        element.target, element.cascade))
     return 'DROP %s %s%s%s;' % (element.subject, element.check,
         element.target, element.cascade)

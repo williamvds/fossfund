@@ -1,6 +1,5 @@
 '''Controllers for /project'''
 import os.path as path # pylint: disable = useless-import-alias
-from os import makedirs
 from urllib.parse import urlencode
 
 from attrdict import AttrDict
@@ -9,29 +8,11 @@ from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
 
 from .. import database
-from ..extends import error
+from ..database.model import Project
+from ..extends import AppError, error, Config
 
+_config = Config()
 route = RouteCollector(prefix='/project')
-
-_STATIC_DIR = path.join(path.abspath(path.dirname(__file__)),
-    '../static/project/')
-
-if not path.exists(_STATIC_DIR):
-    makedirs(_STATIC_DIR)
-
-async def updateLogo(projID: int, data: FileField):
-    '''Handle a request to update the logo of a project
-    Images are stored in /static
-
-    :param projID: ID of project to update logo
-    :param data: uploaded file
-    '''
-
-    if not data.content_type.startswith('image/'):
-        raise TypeError('Invalid image')
-
-    with open(_STATIC_DIR+projID, 'wb') as logoFile:
-        logoFile.write(data.file.read())
 
 @route('')
 @template('project/list.html')
@@ -44,23 +25,15 @@ async def projectList(req: Request):
 
     todo:: sorting?
     '''
-    try:
-        page = min(1, int(req.query['page']))
-    except (ValueError, KeyError):
-        page = 1
+    page = int(req.query.get('page', 1))
 
-    perPage = req.app.config.projectsPerPage
-    res = await database.fetch(req.app,
-        database.projects.outerjoin(database.organisations) \
-        .select(use_labels=True) \
-        .limit(perPage) \
-        .offset((page -1) *perPage))
+    res = await Project.getList(page)
 
     return {'title': 'Projects', 'page': page, 'res': res}
 
 @route('/add')
 @template('project/form.html')
-async def projectAdd(req: Request):
+async def projectAddForm(req: Request):
     '''/project/add
 
     :contents:
@@ -73,7 +46,7 @@ async def projectAdd(req: Request):
     return {'title': 'Add a project', 'orgs': orgs}
 
 @route('/add', method='POST')
-async def projectAddPost(req: Request):
+async def projectAdd(req: Request):
     '''/project/add (POST)
     Save a new project with the POSTed information
     ``orgID`` field is ignored
@@ -88,16 +61,16 @@ async def projectAddPost(req: Request):
     vals = AttrDict(await req.post())
     if 'orgID' in vals and int(vals.orgID) == 0: vals.orgID = None
 
-    if vals.logo:
-        await updateLogo(vals.projID, vals.logo)
-        vals.logo = True
+    project = Project(vals)
+
+    if vals.logo is not None:
+        project.setLogo(vals.logo.file.read(), vals.logo.content_type)
     else:
-        vals.logo = False
+        project.removeLogo()
 
-    res = await database.insert(req.app, database.projects, vals,
-        database.projects.c.projID)
+    await project.save()
 
-    return redirect('/project/%s'% res.projID)
+    return redirect(f'/project/{project.projID}')
 
 @route('/edit/{projID}')
 @template('project/form.html')
@@ -114,14 +87,11 @@ async def projectEdit(req: Request):
     projID = int(req.match_info['projID'])
 
     async with req.app.db.acquire() as conn:
-        res = await database.fetch(conn,
-            database.projects.outerjoin(database.organisations) \
-            .select(use_labels=True)
-            .where(database.projects.c.projID == projID),
-            one=True)
+        project = await Project.findID(projID)
         orgs = await database.fetch(conn, database.organisations.select())
 
-    return {'title': 'Editing '+ res.projects_name, 'res': res, 'orgs': orgs}
+    return {'title': f'Editing {project.name}',
+            'project': project, 'orgs': orgs}
 
 @route('/edit', method='POST')
 async def projectEditPost(req: Request):
@@ -139,20 +109,18 @@ async def projectEditPost(req: Request):
     vals = AttrDict(await req.post())
     if 'orgID' in vals and int(vals.orgID) == 0: vals.orgID = None
 
+    project = Project(vals)
+
     if vals.logo:
-        await updateLogo(vals.projID, vals.logo)
-        vals.logo = True
+        project.setLogo(vals.logo.file.read(), vals.logo.content_type)
     else:
-        del vals.logo
+        project.removeLogo()
 
     # pylint complains about the `dml` parameter being unspecified
     # pylint: disable=no-value-for-parameter
-    await database.run(req.app,
-        database.projects.update() \
-        .where(database.projects.c.projID == vals.projID) \
-        .values(database.clean(vals, database.projects)))
+    await project.save()
 
-    return redirect('/project/%s'% vals.projID)
+    return redirect(f'/project/{vals.projID}')
 
 @route('/remove/{projID}')
 async def projectRemove(req: Request):
@@ -166,13 +134,9 @@ async def projectRemove(req: Request):
     try:
         projID = int(req.match_info['projID'])
     except ValueError:
-        return error(req)
+        raise AppError('That project does not exist')
 
-    # pylint complains about the `dml` parameter being unspecified
-    # pylint: disable=no-value-for-parameter
-    await database.run(req.app,
-        database.projects.delete() \
-        .where(database.projects.c.projID == projID))
+    await Project.deleteID(projID)
 
     return redirect('/project')
 
@@ -198,13 +162,9 @@ async def project(req: Request):
     except ValueError:
         return error(req)
 
-    try:
-        res = await database.fetch(req.app,
-            database.projects.outerjoin(database.organisations) \
-            .select(use_labels=True)
-            .where(database.projects.c.projID == projID),
-            one=True)
-    except TypeError:
+    res = await Project.get(projID)
+
+    if not res:
         return error(req)
 
-    return {'title': res.projects_name, 'res': res}
+    return {'title': res.name, 'project': res}

@@ -1,9 +1,9 @@
 {% extends "templates/layout.html" %}
 {% block main %}
-<form action=/project/{{'edit' if res else 'add'}} method=post
+<form action=/project/{{'edit' if project else 'add'}} method=post
   enctype=multipart/form-data>
-    <label>Name <input type=text name=name {%- if res %} value="{{res.projects_name}}"{% endif %}></label>
-    <label>Description <input type=text name=desc {%- if res and res.projects_desc %} value="{{res.projects_desc}}"{% endif %}></label>
+    <label>Name <input type=text name=name {%- if project %} value="{{project.name}}"{% endif %}></label>
+    <label>Description <input type=text name=desc {%- if project and project.desc %} value="{{project.desc}}"{% endif %}></label>
     <label>Logo <input type=file name=logo></label>
     <label>Organisation
       <select name="orgID">
@@ -13,8 +13,8 @@
         {% endfor %}
       </select>
     </label>
-    <input type=submit value="Submit{{' changes' if res else ''}}">
-    {% if res %}<input type=number name=projID value="{{res.projects_projID}}" hidden>{% endif %}
+    <input type=submit value="Submit{{' changes' if project else ''}}">
+    {% if project %}<input type=number name=projID value="{{project.projID}}" hidden>{% endif %}
 </form>
 
 <h1>Guidelines</h2>

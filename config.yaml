@@ -2,6 +2,7 @@ host: lvh.me
 port: 8080
 dev: true
 projectsPerPage: 20
+maxLogoSize: 1048576
 sessionSecret: mrzmm3GbksRN2bAhKA25YDZDm-lze7JGuTR3j81RC80=
 db:
   host: localhost
