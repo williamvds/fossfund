@@ -1,7 +1,7 @@
 '''Implementation of the Project model'''
 import asyncio
 from typing import Awaitable, Union, List
-from os import path, remove
+import os
 
 from sqlalchemy import Table
 
@@ -51,9 +51,10 @@ class Project(Record):
             raise AppError(
                 f'Logo too large - max allowed is {_config.maxLogoSize/1024}KB')
 
-        logoPath = path.join(_config.projectLogoDir, str(_id))
+        logoPath = os.path.join(_config.projectLogoDir, str(_id))
         try:
-            with open(logoPath, 'wb') as logoFile:
+            fd = os.open(logoPath, os.O_WRONLY|os.O_CREAT|os.O_TRUNC, 0o660)
+            with os.fdopen(fd, 'wb') as logoFile:
                 logoFile.write(logo)
         except IOError:
             raise AppError('Couldn\'t save logo image')
@@ -113,7 +114,7 @@ class Project(Record):
 
     @property
     def _logoPath(self):
-        return path.join(_config.projectLogoDir, str(self._id))
+        return os.path.join(_config.projectLogoDir, str(self._id))
 
     def _saveCallback(self):
         '''Save the logo image once the project has been successfully saved
@@ -122,8 +123,11 @@ class Project(Record):
 
         if self.logo and self._logoData:
             self.saveLogo(self._id, self._logoData, self._logoMime)
-        elif not self.logo and path.isfile(self._logoPath):
-            remove(self._logoPath)
+        elif not self.logo and os.path.isfile(self._logoPath):
+            try:
+                os.remove(self._logoPath)
+            except OSError:
+                AppFatalError('Failed to remove project logo')
 
         self._logoData = None
         self._logoMime = None
