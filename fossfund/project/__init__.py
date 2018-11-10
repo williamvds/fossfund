@@ -111,10 +111,10 @@ async def projectEditPost(req: Request):
 
     project = Project(vals, True)
 
-    if vals.logo:
-        project.setLogo(vals.logo.file.read(), vals.logo.content_type)
-    else:
+    if 'removeLogo' in vals:
         project.removeLogo()
+    elif vals.logo:
+        project.setLogo(vals.logo.file.read(), vals.logo.content_type)
 
     # pylint complains about the `dml` parameter being unspecified
     # pylint: disable=no-value-for-parameter
