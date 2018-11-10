@@ -63,7 +63,7 @@ async def projectAdd(req: Request):
 
     project = Project(vals)
 
-    if vals.logo is not None:
+    if vals.logo:
         project.setLogo(vals.logo.file.read(), vals.logo.content_type)
     else:
         project.removeLogo()
