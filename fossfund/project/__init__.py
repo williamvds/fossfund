@@ -109,7 +109,7 @@ async def projectEditPost(req: Request):
     vals = AttrDict(await req.post())
     if 'orgID' in vals and int(vals.orgID) == 0: vals.orgID = None
 
-    project = Project(vals)
+    project = Project(vals, True)
 
     if vals.logo:
         project.setLogo(vals.logo.file.read(), vals.logo.content_type)
