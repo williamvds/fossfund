@@ -74,7 +74,7 @@ async def projectAdd(req: Request):
 
 @route('/edit/{projID}')
 @template('project/form.html')
-async def projectEdit(req: Request):
+async def projectEditForm(req: Request):
     '''/project/edit
 
     :contents:
@@ -94,7 +94,7 @@ async def projectEdit(req: Request):
             'project': project, 'orgs': orgs}
 
 @route('/edit', method='POST')
-async def projectEditPost(req: Request):
+async def projectEdit(req: Request):
     '''/project/edit (POST)
     Update project using POSTed information
     ``logo``
