@@ -12,9 +12,9 @@
     {% endif %}
     <label>Organisation
       <select name="orgID">
-        <option value="0" selected>None</option>
+        <option value=0 selected>None</option>
         {% for org in orgs %}
-        <option value="{{org.orgID}}">{{org.name}}</option>
+        <option value="{{org.orgID}}" {% if org.orgID == project.orgID %}selected{% endif %}>{{org.name}}</option>
         {% endfor %}
       </select>
     </label>
