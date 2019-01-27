@@ -1,9 +1,6 @@
 '''Controllers for /project'''
-import os.path as path # pylint: disable = useless-import-alias
-from urllib.parse import urlencode
-
 from attrdict import AttrDict
-from aiohttp.web import Request, HTTPFound as redirect, FileField
+from aiohttp.web import Request, HTTPFound as redirect
 from aiohttp_route_decorator import RouteCollector
 from aiohttp_jinja2 import template
 
