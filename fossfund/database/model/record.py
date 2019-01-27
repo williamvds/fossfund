@@ -9,8 +9,6 @@ from aiopg.sa import Engine, SAConnection
 from ...extends import Config, Singleton
 from .. import create
 
-config = Config()
-
 class Null(metaclass=Singleton):
     '''Represents the value NULL in a :class:`Record`
     '''
@@ -83,7 +81,7 @@ class Record:
         :returns: query results
         '''
         if not Record._engine:
-            Record._engine = await create(config.db)
+            Record._engine = await create(Config.db)
 
         if conn:
             return await conn.execute(query)
@@ -237,6 +235,9 @@ class Record:
         '''
         if self._primaryKey is None:
             raise InvalidRecordError
+
+        if Config.dev:
+            print('Record.save', self)
 
         if self.committed:
             await self.updateID(self._id, self._data)

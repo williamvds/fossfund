@@ -10,7 +10,6 @@ from sqlalchemy import Table, Column, Integer, String, Boolean, Time, Enum, \
     text, ForeignKey, MetaData, CheckConstraint, func
 from attrdict import AttrDict
 
-from ..extends import Config
 from .schema import (
     setup, projects, organisations, urls, groups, memberships, users, sessions
 )

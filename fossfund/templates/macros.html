@@ -6,7 +6,7 @@
   {% if link %}<a href="/project/{{rec.projID}}">{% endif %}
     <h2>{{rec.name}}</h2>
   {% if link %}</a>{% endif %}
-  {% if app.config.dev -%}
+  {% if Config.dev -%}
     <span>#{{rec.projID}}</span>
   {% endif %}
   <p>{{rec.desc or ''}}{% if not rec.desc %}<em>No description</em>{% endif %}</p>

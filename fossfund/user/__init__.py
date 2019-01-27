@@ -8,7 +8,7 @@ from aiohttp_jinja2 import template
 from aiohttp_session import get_session
 
 from .. import database
-from ..extends import error
+from ..extends import error, Config
 
 route = RouteCollector(prefix='/user')
 
@@ -35,13 +35,13 @@ async def oauth(req):
         return redirect('/')
 
     provider = req.match_info['provider']
-    if provider not in req.app.config.oauthProviders:
+    if provider not in Config.oauthProviders:
         return error(req)
 
-    info = req.app.config.oauthProviders[provider]
+    info = Config.oauthProviders[provider]
     client = getattr(aioauth_client, info['client'])(**info['options'])
     client.params['redirect_uri'] = '%s://%s%s' \
-        %(req.scheme, req.app.config.host, req.path)
+        %(req.scheme, Config.host, req.path)
 
     if client.shared_key not in req.query:
         return redirect(client.get_authorize_url())

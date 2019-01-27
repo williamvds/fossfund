@@ -9,8 +9,6 @@ from ...extends import AppError, AppFatalError, Config
 from ..schema import projects
 from .record import Record, Null
 
-_config = Config()
-
 class Project(Record):
     '''A free and open source project that is listed on the website
     '''
@@ -47,11 +45,11 @@ class Project(Record):
         if not mime.startswith('image/'):
             raise AppError('Logo is not an image')
 
-        if len(logo) > _config.maxLogoSize:
+        if len(logo) > Config.maxLogoSize:
             raise AppError(
-                f'Logo too large - max allowed is {_config.maxLogoSize/1024}KB')
+                f'Logo too large - max allowed is {Config.maxLogoSize/1024}KB')
 
-        logoPath = os.path.join(_config.projectLogoDir, str(_id))
+        logoPath = os.path.join(Config.projectLogoDir, str(_id))
         try:
             fd = os.open(logoPath, os.O_WRONLY|os.O_CREAT|os.O_TRUNC, 0o660)
             with os.fdopen(fd, 'wb') as logoFile:
@@ -80,8 +78,8 @@ class Project(Record):
 
         res = await cls._find(
             projects.select() \
-            .limit(_config.projectsPerPage) \
-            .offset((page -1) *_config.projectsPerPage))
+            .limit(Config.projectsPerPage) \
+            .offset((page -1) *Config.projectsPerPage))
 
         if not res:
             if page > 1:
@@ -114,7 +112,7 @@ class Project(Record):
 
     @property
     def _logoPath(self):
-        return os.path.join(_config.projectLogoDir, str(self._id))
+        return os.path.join(Config.projectLogoDir, str(self._id))
 
     def _saveCallback(self):
         '''Save the logo image once the project has been successfully saved

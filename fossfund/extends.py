@@ -1,8 +1,7 @@
 '''Utility classes & functions, including extensions to other libraries'''
-import sys
-from os import path, makedirs
+import sys, os
 from http.client import responses
-from typing import NewType, Callable
+from typing import NewType, Callable, Dict, Any
 
 import yaml
 from aiohttp.web import Request, HTTPException, middleware
@@ -99,32 +98,42 @@ class Singleton(type):
             cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
-class Config(metaclass=Singleton):
-    '''A singleton config class from which all configuration values can be
-    accessed as attributes
+class ConfigMeta(type):
+    '''Metaclass for a configuration class
+    Allows configuration values to be accessed as attributes
+    '''
+    def __getattr__(cls, key):
+        return getattr(cls._dict, key)
+
+class Config(metaclass=ConfigMeta):
+    '''Stores configuration values as static members
     '''
     #: The internal dictionary which stores the configuration values
     _dict: AttrDict = None
 
-    def __init__(self):
-        fname = path.join(path.dirname(__file__), '../config.yaml')
+    @classmethod
+    def load(cls, data: Dict[str, Any]):
+        '''Load the given configuration data
 
-        try:
-            config = AttrDict(yaml.load(open(fname)))
-        except IOError as ex:
-            raise Exception(f"Failed to load configuration file {fname}: {ex}")
+        :param data: data to store or replace
+        '''
+        cls._dict = data
 
-        config.staticDir = path.join(path.dirname(__file__), 'static')
+        cls.staticDir = os.path.join(os.path.dirname(__file__), 'static')
 
-        if not path.exists(config.staticDir):
-            makedirs(config.staticDir, 0o755)
+        if not os.path.exists(cls.staticDir):
+            os.makedirs(cls.staticDir, 0o755)
 
-        config.projectLogoDir = path.join(config.staticDir, 'project')
+        cls.projectLogoDir = os.path.join(cls.staticDir, 'project')
 
-        if not path.exists(config.projectLogoDir):
-            makedirs(config.projectLogoDir, 0o755)
+        if not os.path.exists(cls.projectLogoDir):
+            os.makedirs(cls.projectLogoDir, 0o750)
 
-        self._dict = config
+# TODO: bootstrap Config within main
+path = os.path.join(os.path.dirname(__file__), '../config.yaml')
 
-    def __getattr__(self, name):
-        return getattr(self._dict, name)
+try:
+    with open(path) as _file:
+        Config.load(AttrDict(yaml.load(_file)))
+except IOError as ex:
+    raise Exception(f"Failed to load configuration file {path}: {ex}")

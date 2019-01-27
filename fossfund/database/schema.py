@@ -12,16 +12,15 @@ from sqlalchemy.dialects.postgresql import CreateEnumType
 from ..extends import Config
 from .utils import DropType, DropTable
 
-_config = Config()
 _m = MetaData()
 
 #: A type of a donation URL, identifying the primary payment service provider
 #: e.g. PayPal, Patreon
-URLType = enum.Enum('URLType', list(_config.urlTypes.keys()))
+URLType = enum.Enum('URLType', list(Config.urlTypes.keys()))
 
 #: An OAuth provider enum, identifying which one authenticated a user
 #: e.g. Google, GitHub
-OAuthProvider = enum.Enum('OAuthProvider', list(_config.oauthProviders.keys()))
+OAuthProvider = enum.Enum('OAuthProvider', list(Config.oauthProviders.keys()))
 
 #: The internal representation for the :py:attr:`URLType` enum
 urlType = Enum(URLType, name='urltype', metadata=_m)

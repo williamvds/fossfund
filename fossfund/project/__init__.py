@@ -11,7 +11,6 @@ from .. import database
 from ..database.model import Project
 from ..extends import AppError, error, Config
 
-_config = Config()
 route = RouteCollector(prefix='/project')
 
 @route('')
@@ -114,7 +113,10 @@ async def projectEdit(req: Request):
     if 'removeLogo' in vals:
         project.removeLogo()
     elif vals.logo:
+        print(vals.logo)
         project.setLogo(vals.logo.file.read(), vals.logo.content_type)
+    else:
+        project.logo = None
 
     # pylint complains about the `dml` parameter being unspecified
     # pylint: disable=no-value-for-parameter
