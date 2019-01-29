@@ -1,0 +1,16 @@
+{% extends "templates/layout.html" %}
+{% block main %}
+<form action=/organisation/{{'edit' if org else 'add'}} method=post
+  enctype=multipart/form-data>
+    <label>Name <input type=text name=name {%- if org %} value="{{org.name}}"{% endif %}></label>
+    <label>Description <input type=text name=desc {%- if org and org.desc %} value="{{org.desc}}"{% endif %}></label>
+    <label>Logo <input type=file name=logo></label>
+    {% if org and org.logo %}
+      <label>Remove logo
+        <input type=checkbox name=removeLogo />
+      </label>
+    {% endif %}
+    <input type=submit value="Submit{{' changes' if org else ''}}">
+    {% if org %}<input type=number name=orgID value="{{org.orgID}}" hidden>{% endif %}
+</form>
+{% endblock %}

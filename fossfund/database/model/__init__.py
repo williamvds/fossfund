@@ -3,6 +3,7 @@ for interacting with database'''
 import asyncio
 
 from .project import Project
+from .organisation import Organisation
 from .record import (
     NULL, InvalidRecordError, InvalidStateError, NotUniqueError
 )
@@ -13,4 +14,5 @@ __all__ = [
     'NotUniqueError',
     'NULL',
     'Project',
+    'Organisation',
 ]

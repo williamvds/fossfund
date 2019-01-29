@@ -125,9 +125,10 @@ class Config(metaclass=ConfigMeta):
             os.makedirs(cls.staticDir, 0o755)
 
         cls.projectLogoDir = os.path.join(cls.staticDir, 'project')
+        cls.organisationLogoDir = os.path.join(cls.staticDir, 'organisation')
 
-        if not os.path.exists(cls.projectLogoDir):
-            os.makedirs(cls.projectLogoDir, 0o750)
+        os.makedirs(cls.projectLogoDir, 0o750, exist_ok=True)
+        os.makedirs(cls.organisationLogoDir, 0o750, exist_ok=True)
 
 # TODO: bootstrap Config within main
 path = os.path.join(os.path.dirname(__file__), '../config.yaml')

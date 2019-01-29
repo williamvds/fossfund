@@ -9,7 +9,7 @@
         <a href=/>fossfund</a>
         <nav>
           <ul>
-            {% for href, name in [('/project', 'Projects'), ('/organisations', 'Organisations')] %}
+            {% for href, name in [('/project', 'Projects'), ('/organisation', 'Organisations')] %}
             <li><a {%- if request.path == href %} class=current{% endif %} href={{href}}>{{name}}</a>
             {% endfor %}
             <li>

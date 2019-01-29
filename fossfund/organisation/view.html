@@ -1,0 +1,7 @@
+{% extends "templates/layout.html" %}
+{% from "templates/macros.html" import organisationLayout %}
+{% block main %}
+  <a href=/organisation/edit/{{org.orgID}}>Edit</a>
+  <a href=/organisation/remove/{{org.orgID}}>Remove</a>
+  {{organisationLayout(org, false)}}
+{% endblock %}

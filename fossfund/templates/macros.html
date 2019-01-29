@@ -20,3 +20,18 @@
   {% endif %}
 </div>
 {% endmacro %}
+
+{% macro organisationLayout(rec, link=True) %}
+<div class=organisation>
+  {% if rec.logo %}
+    <img src="/static/organisation/{{rec.orgID}}" alt="Logo of {{rec.name}}">
+  {% endif %}
+  {% if link %}<a href="/organisation/{{rec.orgID}}">{% endif %}
+    <h2>{{rec.name}}</h2>
+  {% if link %}</a>{% endif %}
+  {% if Config.dev -%}
+    <span>#{{rec.orgID}}</span>
+  {% endif %}
+  <p>{{rec.desc or ''}}{% if not rec.desc %}<em>No description</em>{% endif %}</p>
+</div>
+{% endmacro %}

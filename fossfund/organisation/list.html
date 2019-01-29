@@ -1,0 +1,14 @@
+{% extends "templates/layout.html" %}
+{% from "templates/macros.html" import organisationLayout %}
+{% block main %}
+  <h1>{{title}}</h1>
+  <a href=/organisation/add>Add project</a>
+  <p>Page {{page}}</p>
+  {% if res %}
+    {% for row in res %}
+      {{organisationLayout(row)}}
+    {% endfor %}
+  {% else %}
+    <em>No projects found</em>
+  {% endif %}
+{% endblock %}
